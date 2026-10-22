@@ -9,10 +9,12 @@
 #include <beveled/bevel.h>
 #include <beveled/pixelpainter.h>
 #include <beveled/shades.h>
+#include <beveled/shadow.h>
 
 #include <KConfigGroup>
 #include <KDecoration3/DecoratedWindow>
 #include <KDecoration3/DecorationSettings>
+#include <KDecoration3/DecorationShadow>
 #include <KSharedConfig>
 
 #include <QLinearGradient>
@@ -20,6 +22,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <memory>
 
 namespace Beveled {
 
@@ -60,6 +63,39 @@ int padding(KDecoration3::BorderSize size)
     return 2;
 }
 
+// Shadow opacity (0-255), applied to the palette's Shadow color.
+constexpr int SoftShadowAlpha = 140;
+constexpr int SolidShadowAlpha = 110;
+
+// All windows share one shadow texture; it is rebuilt only when its parameters change and freed
+// when no decoration uses it any more.
+std::shared_ptr<KDecoration3::DecorationShadow> sharedShadow(DecorationConfig::EnumShadowStyle::type style, int distance, const QColor &color)
+{
+    struct Key
+    {
+        DecorationConfig::EnumShadowStyle::type style;
+        int distance;
+        QRgb color;
+        bool operator==(const Key &) const = default;
+    };
+    static Key cachedKey {};
+    static std::weak_ptr<KDecoration3::DecorationShadow> cached;
+
+    const Key key {style, distance, color.rgba()};
+    if (auto shadow = cached.lock(); shadow && cachedKey == key) {
+        return shadow;
+    }
+
+    const ShadowTexture texture = style == DecorationConfig::EnumShadowStyle::Solid ? solidShadow(distance, color) : softShadow(distance, color);
+    auto shadow = std::make_shared<KDecoration3::DecorationShadow>();
+    shadow->setShadow(texture.image);
+    shadow->setInnerShadowRect(texture.innerRect);
+    shadow->setPadding(texture.padding);
+    cached = shadow;
+    cachedKey = key;
+    return shadow;
+}
+
 } // namespace
 
 Decoration::Decoration(QObject *parent, const QVariantList &args)
@@ -79,6 +115,7 @@ bool Decoration::init()
     m_configWatcher = KConfigWatcher::create(m_config->sharedConfig());
     connect(m_configWatcher.data(), &KConfigWatcher::configChanged, this, [this] {
         m_config->load();
+        updateShadow();
         updateLayout();
     });
 
@@ -101,10 +138,14 @@ bool Decoration::init()
     connect(w, &KDecoration3::DecoratedWindow::sizeChanged, this, &Decoration::updateLayout);
     connect(w, &KDecoration3::DecoratedWindow::activeChanged, this, [this] { update(); });
     connect(w, &KDecoration3::DecoratedWindow::captionChanged, this, [this] { update(); });
-    connect(w, &KDecoration3::DecoratedWindow::paletteChanged, this, [this] { update(); });
+    connect(w, &KDecoration3::DecoratedWindow::paletteChanged, this, [this] {
+        updateShadow();
+        update();
+    });
     connect(w, &KDecoration3::DecoratedWindow::iconChanged, this, [this] { update(); });
 
     setOpaque(true);
+    updateShadow();
     recreateButtons();
     return true;
 }
@@ -112,7 +153,7 @@ bool Decoration::init()
 QPalette Decoration::palette() const
 {
     QPalette p = window()->palette();
-    applyShades(p);
+    applyShades(p, m_config->shadeDepth() / 100.0);
     return p;
 }
 
@@ -229,6 +270,18 @@ void Decoration::readTitleBlend()
     m_inactiveBlend = wm.readEntry("inactiveBlend", QColor());
 }
 
+void Decoration::updateShadow()
+{
+    const auto style = DecorationConfig::EnumShadowStyle::type(m_config->shadowStyle());
+    if (style == DecorationConfig::EnumShadowStyle::None) {
+        setShadow({});
+        return;
+    }
+    QColor color = palette().color(QPalette::Shadow);
+    color.setAlpha(style == DecorationConfig::EnumShadowStyle::Solid ? SolidShadowAlpha : SoftShadowAlpha);
+    setShadow(sharedShadow(style, m_config->shadowDistance(), color));
+}
+
 void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
 {
     KDecoration3::DecoratedWindow *w = window();
@@ -243,7 +296,8 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
     fillRect(painter, QRect(client.right() + 1, client.top(), full.right() - client.right(), client.height()), face);
     fillRect(painter, QRect(full.left(), client.bottom() + 1, full.width(), full.bottom() - client.bottom()), face);
     if (hasFrame()) {
-        drawBevel(painter, full, BevelStyle::Window, pal);
+        const bool hard = m_config->frameBevel() == DecorationConfig::EnumFrameBevel::Hard;
+        drawBevel(painter, full, hard ? BevelStyle::RaisedHard : BevelStyle::Window, pal);
     }
 
     // Title bar: solid, or a horizontal gradient from the title color to the blend color.

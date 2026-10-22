@@ -8,6 +8,15 @@ SPDX-License-Identifier: CC0-1.0
       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
       xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
   <kcfgfile name="beveledrc"/>
+  <!-- Options shared with the other Beveled components. -->
+  <group name="General">
+    <!-- How dark the shaded sides of bevels are, in percent of the classic depth. -->
+    <entry name="ShadeDepth" type="Int">
+      <default>100</default>
+      <min>50</min>
+      <max>150</max>
+    </entry>
+  </group>
   <group name="Decoration">
     <entry name="TitleBarStyle" type="Enum">
       <choices>
@@ -22,6 +31,36 @@ SPDX-License-Identifier: CC0-1.0
         <choice name="Hard"/>
       </choices>
       <default>Soft</default>
+    </entry>
+    <entry name="FrameBevel" type="Enum">
+      <choices>
+        <choice name="Soft"/>
+        <choice name="Hard"/>
+      </choices>
+      <default>Soft</default>
+    </entry>
+    <entry name="ButtonHover" type="Enum">
+      <choices>
+        <choice name="None"/>
+        <choice name="Highlight"/>
+        <choice name="Nudge"/>
+      </choices>
+      <default>None</default>
+    </entry>
+    <entry name="ShadowStyle" type="Enum">
+      <choices>
+        <choice name="None"/>
+        <choice name="Soft"/>
+        <choice name="Solid"/>
+      </choices>
+      <default>Soft</default>
+    </entry>
+    <!-- How far the window seems to float above the desktop, in logical pixels.
+         Keep in sync with Min/MaxShadowDistance in libbeveled/src/beveled/shadow.h. -->
+    <entry name="ShadowDistance" type="Int">
+      <default>4</default>
+      <min>1</min>
+      <max>16</max>
     </entry>
     <!-- Extra space around caption button glyphs, in logical pixels. -->
     <entry name="ButtonPadding" type="Int">

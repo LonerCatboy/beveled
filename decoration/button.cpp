@@ -18,9 +18,21 @@ namespace Beveled {
 
 using KDecoration3::DecorationButtonType;
 
+namespace {
+
+constexpr qreal HoverTint = 0.2; // share of the selection color in a highlighted button face
+
+QColor mix(const QColor &a, const QColor &b, qreal t)
+{
+    return QColor::fromRgbF(a.redF() + (b.redF() - a.redF()) * t, a.greenF() + (b.greenF() - a.greenF()) * t, a.blueF() + (b.blueF() - a.blueF()) * t);
+}
+
+} // namespace
+
 Button::Button(DecorationButtonType type, Decoration *decoration)
     : KDecoration3::DecorationButton(type, decoration, decoration)
 {
+    connect(this, &KDecoration3::DecorationButton::hoveredChanged, this, [this] { update(); });
 }
 
 Button *Button::create(DecorationButtonType type, Decoration *decoration)
@@ -58,7 +70,15 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
 
     const QPalette pal = deco->palette();
     const bool down = isPressed();
-    fillRect(painter, r, pal.color(QPalette::Button));
+    const auto hover = deco->config().buttonHover();
+    const bool hovered = isHovered() && !down;
+
+    QColor face = pal.color(QPalette::Button);
+    if (hovered && hover == DecorationConfig::EnumButtonHover::Highlight) {
+        // A light tint of the selection color, like the hover of KDE's default buttons.
+        face = mix(face, pal.color(QPalette::Highlight), HoverTint);
+    }
+    fillRect(painter, r, face);
     const bool hard = deco->config().buttonBevel() == DecorationConfig::EnumButtonBevel::Hard;
     if (hard) {
         drawBevel(painter, r, down ? BevelStyle::PushedHard : BevelStyle::RaisedHard, pal);
@@ -72,7 +92,13 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
     } else if (type() == DecorationButtonType::Maximize) {
         glyph = deco->window()->isMaximized() ? Glyph::Restore : Glyph::Maximize;
     }
-    drawCaptionGlyph(painter, r, glyph, pal, isEnabled(), down);
+    GlyphOffset offset = GlyphOffset::None;
+    if (down) {
+        offset = GlyphOffset::Pressed;
+    } else if (hovered && hover == DecorationConfig::EnumButtonHover::Nudge) {
+        offset = GlyphOffset::Nudged;
+    }
+    drawCaptionGlyph(painter, r, glyph, pal, isEnabled(), offset);
 }
 
 } // namespace Beveled

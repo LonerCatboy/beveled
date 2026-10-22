@@ -46,6 +46,7 @@ private:
     void recreateButtons();
     void layoutButtons();
     void readTitleBlend();
+    void updateShadow();
 
     QList<Button *> m_leftButtons;
     QList<Button *> m_rightButtons;

@@ -60,8 +60,9 @@ sudo cmake --install build-vm
 Then choose **Beveled** in System Settings → Colors & Themes → Window Decorations, and
 **Beveled Classic** in Colors.
 
-The decoration options (title bar style, button bevel, button padding) are behind the edit
-button of Beveled in Window Decorations, and are stored in `~/.config/beveledrc`.
+The decoration options (title bar, bevels, shade depth, button hover and padding, shadows)
+are behind the edit button of Beveled in Window Decorations, and are stored in
+`~/.config/beveledrc`.
 
 To update, there is no need to uninstall first: the new install overwrites the old files.
 
