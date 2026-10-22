@@ -5,6 +5,8 @@
 
 #include "pixelpainter.h"
 
+#include <QLinearGradient>
+#include <QPainter>
 #include <QPalette>
 
 namespace Beveled {
@@ -66,6 +68,30 @@ void fillRect(QPainter *painter, const QRect &logicalRect, const QColor &color)
 {
     PixelPainter pp(painter);
     pp.fillRect(pp.toDevice(logicalRect), color);
+}
+
+void drawGloss(QPainter *painter, const QRect &logicalRect, const QColor &highlight)
+{
+    PixelPainter pp(painter);
+    const QRect r = pp.toDevice(logicalRect);
+    if (r.height() < 2) {
+        return;
+    }
+    const auto withAlpha = [&highlight](int alpha) {
+        QColor c = highlight;
+        c.setAlpha(alpha);
+        return c;
+    };
+    // Gradients in device coordinates, split on a whole device row.
+    const int split = r.top() + r.height() / 2;
+    QLinearGradient reflection(QPointF(0, r.top()), QPointF(0, split));
+    reflection.setColorAt(0, withAlpha(150));
+    reflection.setColorAt(1, withAlpha(50));
+    painter->fillRect(QRect(r.left(), r.top(), r.width(), split - r.top()), reflection);
+    QLinearGradient glow(QPointF(0, split), QPointF(0, r.bottom() + 1));
+    glow.setColorAt(0, withAlpha(0));
+    glow.setColorAt(1, withAlpha(40));
+    painter->fillRect(QRect(r.left(), split, r.width(), r.bottom() + 1 - split), glow);
 }
 
 void drawEtchedLine(QPainter *painter, const QRect &logicalRect, Qt::Orientation orientation, const QPalette &palette, int ringWidth)

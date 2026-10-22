@@ -147,6 +147,24 @@ private Q_SLOTS:
             });
     }
 
+    // The gloss brightens the top half more than the bottom, with a sharp edge in the middle,
+    // and stays inside its rectangle.
+    void gloss()
+    {
+        for (const int scale : {1, 2}) {
+            const QImage image = TestUtils::render(QSize(10, 20), scale, [](QPainter *painter) {
+                painter->fillRect(QRect(0, 0, 10, 20), QColor(0, 0, 0));
+                drawGloss(painter, QRect(0, 2, 10, 16), QColor(255, 255, 255));
+            });
+            const auto level = [&](int logicalY) { return qRed(image.pixel(5 * scale, logicalY * scale)); };
+            QCOMPARE(level(0), 0);
+            QCOMPARE(level(19), 0);
+            QVERIFY(level(2) > level(9)); // reflection fades towards the middle
+            QVERIFY(level(9) > level(10)); // sharp edge
+            QVERIFY(level(17) > level(10)); // glow at the bottom
+        }
+    }
+
     // Rectangles too small for a bevel, empty or inverted (e.g. a window narrower than its
     // borders) must not draw outside themselves.
     void degenerate()

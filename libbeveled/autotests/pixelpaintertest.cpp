@@ -68,6 +68,25 @@ private Q_SLOTS:
         });
     }
 
+    // Surfaces painted upside down (e.g. OpenGL framebuffers in previews) have a negative
+    // vertical scale: rects must still land on the grid, with their edges swapped back.
+    void mirroredTransform()
+    {
+        const QPalette p = TestUtils::testPalette();
+        const QImage image = TestUtils::render(QSize(4, 5), 2.0, [&](QPainter *painter) {
+            painter->setWorldTransform(QTransform(1, 0, 0, -1, 0, 5)); // logical y -> 5 - y
+            PixelPainter pp(painter);
+            QCOMPARE(pp.unit(), 2);
+            QVERIFY(pp.isPixelAligned());
+            QCOMPARE(pp.toDevice(QRectF(1, 1, 2, 1)), QRect(2, 6, 4, 2));
+            pp.fillRect(pp.toDevice(QRectF(1, 1, 2, 1)), p.color(QPalette::Shadow));
+        });
+        QCOMPARE(image.pixel(2, 6), p.color(QPalette::Shadow).rgb());
+        QCOMPARE(image.pixel(5, 7), p.color(QPalette::Shadow).rgb());
+        QCOMPARE(image.pixel(2, 5), TestUtils::Untouched.rgb());
+        QCOMPARE(image.pixel(2, 8), TestUtils::Untouched.rgb());
+    }
+
     void fillsDevicePixels()
     {
         const QPalette p = TestUtils::testPalette();
