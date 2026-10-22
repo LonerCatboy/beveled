@@ -115,11 +115,14 @@ QSize Style::sizeFromContents(ContentsType type, const QStyleOption *option, con
 
 void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const
 {
-    // Two-pixel sunken frames (lists, text fields, scroll areas) are drawn by libbeveled: on the
-    // device pixel grid, and with the optional hard variant.
+    // Sunken frames (lists, scroll areas, text fields) are drawn by libbeveled: on the device
+    // pixel grid, and with the optional hard variant. Like the Windows style, PE_Frame is always
+    // a two-pixel panel whatever lineWidth says (QFrame's default is 1, which most applications
+    // keep); text fields have no frame when lineWidth is 0.
     if (element == PE_Frame || element == PE_FrameLineEdit) {
         const auto *frame = qstyleoption_cast<const QStyleOptionFrame *>(option);
-        if (frame && (frame->state & State_Sunken) && frame->lineWidth == bevelThickness()) {
+        const bool hasFrame = frame && (element == PE_Frame || frame->lineWidth > 0);
+        if (hasFrame && (frame->state & State_Sunken)) {
             const bool hard = m_config->sunkenFrame() == StyleConfig::EnumSunkenFrame::Hard;
             drawBevel(painter, frame->rect, hard ? BevelStyle::SunkenHard : BevelStyle::Sunken, frame->palette);
             return;

@@ -34,13 +34,13 @@ class StyleTest : public QObject
         group.sync();
     }
 
-    // Renders a sunken 2px frame with the given style and returns its pixels.
+    // Renders a sunken frame as applications create it (QFrame's default line width, as in
+    // scroll areas and list views) and returns its pixels.
     static QImage renderSunkenFrame(QStyle *style)
     {
         QFrame frame;
         frame.setStyle(style);
         frame.setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
-        frame.setLineWidth(2);
         frame.resize(20, 20);
         return frame.grab().toImage();
     }
