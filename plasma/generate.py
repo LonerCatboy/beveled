@@ -67,53 +67,77 @@ TEXT = "t"  # text color (tooltip border)
 WINDOW = (FACE, SHADOW, LIGHT, DARK)
 RAISED = (LIGHT, SHADOW, FACE, DARK)
 PUSHED = (SHADOW, LIGHT, DARK, FACE)
+# "Hard" bevels: both rings in the same color, for a crisper, higher-contrast edge.
+RAISED_HARD = (LIGHT, SHADOW, LIGHT, SHADOW)
+PUSHED_HARD = (SHADOW, LIGHT, SHADOW, LIGHT)
 
-
-def bevel_map(size, rings, center=FACE):
-    """A size x size pixel map with one-pixel rings; bottom/right colors own the corners."""
-    grid = [[center] * size for _ in range(size)]
-    for depth, (top_left, bottom_right) in enumerate(rings):
-        last = size - 1 - depth
-        for i in range(depth, last + 1):
-            grid[depth][i] = top_left
-            grid[i][depth] = top_left
-        for i in range(depth, last + 1):
-            grid[last][i] = bottom_right
-            grid[i][last] = bottom_right
-    return grid
-
-
-def two_ring_map(size, bevel, center=FACE):
-    return bevel_map(size, [(bevel[0], bevel[1]), (bevel[2], bevel[3])], center)
+# Task buttons always span the whole panel thickness (the task manager fills its area and ignores
+# the panel margins), so their frames carry a transparent inset: the visible bevel then sits
+# inside the panel's own bevel at any panel height.
+TASK_INSET_X = 1  # half the gap between neighboring tasks
+TASK_INSET_Y = 3  # panel bevel (2px) plus a 1px gap
 
 
 @dataclass
 class Frame:
     prefix: str  # "" for frames without a prefix
-    grid: list  # square pixel map: border + 1px center + border
-    border: int  # width of the corner and side elements
+    grid: list  # pixel map: left/top border + 1px center + right/bottom border
+    border_x: int  # width of the corner and left/right elements
+    border_y: int  # height of the corner and top/bottom elements
     margins: dict  # content margins per side
 
 
+def bevel_frame(prefix, bevel, margins, center=FACE, inset_x=0, inset_y=0):
+    """A two-ring bevel with a 1px center, optionally surrounded by a transparent inset.
+
+    The rings follow the libbeveled rule: bottom/right colors own the corners. margins are the
+    content margins inside the bevel; the inset is added to them.
+    """
+    width, height = 2 * (inset_x + 2) + 1, 2 * (inset_y + 2) + 1
+    grid = [[CLEAR] * width for _ in range(height)]
+    rings = [(bevel[0], bevel[1]), (bevel[2], bevel[3])]
+    for depth in range(2):
+        left, top = inset_x + depth, inset_y + depth
+        right, bottom = width - 1 - left, height - 1 - top
+        top_left, bottom_right = rings[depth]
+        for x in range(left, right + 1):
+            grid[top][x] = top_left
+        for y in range(top, bottom + 1):
+            grid[y][left] = top_left
+        for x in range(left, right + 1):
+            grid[bottom][x] = bottom_right
+        for y in range(top, bottom + 1):
+            grid[y][right] = bottom_right
+    grid[inset_y + 2][inset_x + 2] = center
+    insets = {"left": inset_x, "right": inset_x, "top": inset_y, "bottom": inset_y}
+    return Frame(prefix, grid, inset_x + 2, inset_y + 2, {side: insets[side] + margins[side] for side in SIDES})
+
+
+def uniform(margin):
+    return {side: margin for side in SIDES}
+
+
 def tooltip_frame():
-    grid = bevel_map(3, [(TEXT, TEXT)])
-    return Frame("", grid, 1, {side: 3 for side in SIDES})
+    grid = [[TEXT] * 3, [TEXT, FACE, TEXT], [TEXT] * 3]
+    return Frame("", grid, 1, 1, uniform(3))
 
 
-def raised_frame(prefix, margins=4):
-    return Frame(prefix, two_ring_map(5, WINDOW), 2, {side: margins for side in SIDES})
+def window_frame(bevel=WINDOW, margins=4):
+    return bevel_frame("", bevel, uniform(margins))
 
 
 def task_frames():
-    frames = []
-    for prefix in ["normal", "hover", "minimized"]:
-        frames.append(Frame(prefix, two_ring_map(5, RAISED), 2, {side: 3 for side in SIDES}))
+    inset = {"inset_x": TASK_INSET_X, "inset_y": TASK_INSET_Y}
+    frames = [bevel_frame(prefix, RAISED_HARD, uniform(3), **inset) for prefix in ["normal", "hover", "minimized"]]
     # The active task looks pushed in, lighter, with its content moved down and right by a pixel.
     pushed = {"top": 4, "left": 4, "bottom": 2, "right": 2}
-    frames.append(Frame("focus", two_ring_map(5, PUSHED, LIGHTER), 2, pushed))
-    frames.append(Frame("attention", two_ring_map(5, RAISED, HIGHLIGHT), 2, {side: 3 for side in SIDES}))
-    # Progress is drawn over the task: a flat bar in the selection color, no border.
-    frames.append(Frame("progress", [[HIGHLIGHT] * 3 for _ in range(3)], 1, {side: 0 for side in SIDES}))
+    frames.append(bevel_frame("focus", PUSHED_HARD, pushed, LIGHTER, **inset))
+    frames.append(bevel_frame("attention", RAISED_HARD, uniform(3), HIGHLIGHT, **inset))
+    # Progress is drawn over the task: a flat bar in the selection color, inside the bevel.
+    bar_x, bar_y = TASK_INSET_X + 2, TASK_INSET_Y + 2
+    grid = [[CLEAR] * (2 * bar_x + 1) for _ in range(2 * bar_y + 1)]
+    grid[bar_y][bar_x] = HIGHLIGHT  # only the stretched center is painted
+    frames.append(Frame("progress", grid, bar_x, bar_y, uniform(0)))
     return frames
 
 
@@ -134,11 +158,10 @@ def fills(token, variant):
 
 def part_rects(frame, part):
     """The pixel rectangle (x, y, w, h) of a nine-patch part inside the frame grid."""
-    b = frame.border
-    size = len(frame.grid)
-    c = size - 2 * b
-    col = {"left": (0, b), "center": (b, c), "right": (b + c, b)}
-    row = {"top": (0, b), "center": (b, c), "bottom": (b + c, b)}
+    bx, by = frame.border_x, frame.border_y
+    cx, cy = len(frame.grid[0]) - 2 * bx, len(frame.grid) - 2 * by
+    col = {"left": (0, bx), "center": (bx, cx), "right": (bx + cx, bx)}
+    row = {"top": (0, by), "center": (by, cy), "bottom": (by + cy, by)}
     vertical = "top" if part.startswith("top") else "bottom" if part.startswith("bottom") else "center"
     horizontal = "left" if part.endswith("left") else "right" if part.endswith("right") else "center"
     (x, w), (y, h) = col[horizontal], row[vertical]
@@ -162,7 +185,7 @@ def svg_document(frames, variant):
     ]
     x0 = 0
     for frame in frames:
-        size = len(frame.grid)
+        width, height = len(frame.grid[0]), len(frame.grid)
         for part in PARTS:
             px, py, pw, ph = part_rects(frame, part)
             out.append(f'<g id="{element_name(frame, part)}">')
@@ -181,21 +204,21 @@ def svg_document(frames, variant):
                     x = end
             out.append("</g>")
         # Margin hints: rects whose width (left/right) or height (top/bottom) is the margin.
-        hy = size + 1
+        hy = height + 1
         for i, side in enumerate(SIDES):
             m = max(frame.margins[side], 0)
             w, h = (m, 1) if side in ("left", "right") else (1, m)
             if m > 0:
                 out.append(f'<rect id="{element_name(frame, "hint-" + side + "-margin")}" x="{x0 + i * 6}" y="{hy}" width="{w}" height="{h}" fill="#f0f"/>')
-        x0 += max(size, 24) + 4
+        x0 += max(width, 24) + 4
     out.append("</svg>")
     return "\n".join(out) + "\n"
 
 
 FILES = {
-    "widgets/panel-background": lambda: [raised_frame("", margins=3)],
-    "widgets/background": lambda: [raised_frame("")],
-    "dialogs/background": lambda: [raised_frame("")],
+    "widgets/panel-background": lambda: [window_frame(RAISED_HARD, margins=3)],
+    "widgets/background": lambda: [window_frame()],
+    "dialogs/background": lambda: [window_frame()],
     "widgets/tooltip": lambda: [tooltip_frame()],
     "widgets/tasks": task_frames,
 }
