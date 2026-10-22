@@ -91,18 +91,21 @@ constexpr qreal InactiveShadowOpacity = 0.6;
 
 // Windows with the same shadow parameters share one texture (typically one for active and one for
 // inactive windows). Textures are built on first use and freed when no decoration uses them.
+struct ShadowKey
+{
+    DecorationConfig::EnumShadowStyle::type style;
+    int distance;
+    QRgb color;
+    auto operator<=>(const ShadowKey &) const = default;
+};
+std::map<ShadowKey, std::weak_ptr<KDecoration3::DecorationShadow>> s_shadowCache;
+int s_decorationCount = 0;
+
 std::shared_ptr<KDecoration3::DecorationShadow> sharedShadow(DecorationConfig::EnumShadowStyle::type style, int distance, const QColor &color)
 {
-    struct Key
-    {
-        DecorationConfig::EnumShadowStyle::type style;
-        int distance;
-        QRgb color;
-        auto operator<=>(const Key &) const = default;
-    };
-    static std::map<Key, std::weak_ptr<KDecoration3::DecorationShadow>> cache;
+    auto &cache = s_shadowCache;
 
-    const Key key {style, distance, color.rgba()};
+    const ShadowKey key {style, distance, color.rgba()};
     if (auto shadow = cache[key].lock()) {
         return shadow;
     }
@@ -123,9 +126,37 @@ Decoration::Decoration(QObject *parent, const QVariantList &args)
     : KDecoration3::Decoration(parent, args)
     , m_config(std::make_unique<DecorationConfig>())
 {
+    ++s_decorationCount;
 }
 
-Decoration::~Decoration() = default;
+Decoration::~Decoration()
+{
+    // Our members (m_config, the buttons list, ...) are destroyed before the KDecoration base
+    // class, but signal connections to this object only go away in ~QObject, after it. Cut them
+    // now, so that nothing emitted while KDecoration tears the window down (typically at logout,
+    // for every window at once) reaches a slot that uses destroyed members.
+    if (window()) {
+        disconnect(window(), nullptr, this, nullptr);
+    }
+    if (const auto s = settings()) {
+        disconnect(s.get(), nullptr, this, nullptr);
+    }
+    if (m_configWatcher) {
+        disconnect(m_configWatcher.data(), nullptr, this, nullptr);
+    }
+    if (m_globalsWatcher) {
+        disconnect(m_globalsWatcher.data(), nullptr, this, nullptr);
+    }
+    for (Button *button : std::as_const(m_leftButtons) + std::as_const(m_rightButtons)) {
+        disconnect(button, nullptr, this, nullptr);
+    }
+
+    // With the last window gone, drop the shadow cache entirely (as KDecoration may unload the
+    // plugin afterwards).
+    if (--s_decorationCount == 0) {
+        s_shadowCache.clear();
+    }
+}
 
 bool Decoration::init()
 {
