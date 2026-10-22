@@ -10,6 +10,7 @@
 #include <KColorScheme>
 #include <KSharedConfig>
 
+#include <QFileInfo>
 #include <QGuiApplication>
 #include <QMetaEnum>
 #include <QPalette>
@@ -24,7 +25,9 @@ int main(int argc, char **argv)
         return 1;
     }
 
-    const KSharedConfigPtr config = KSharedConfig::openConfig(QString::fromLocal8Bit(argv[1]), KConfig::SimpleConfig);
+    // KConfig treats relative names as files in the config directories: make the path absolute.
+    const QString path = QFileInfo(QString::fromLocal8Bit(argv[1])).absoluteFilePath();
+    const KSharedConfigPtr config = KSharedConfig::openConfig(path, KConfig::SimpleConfig);
     const QPalette palette = KColorScheme::createApplicationPalette(config);
 
     const QList<QPalette::ColorRole> roles = {QPalette::Window, QPalette::WindowText, QPalette::Button, QPalette::ButtonText, QPalette::Light,

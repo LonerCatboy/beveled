@@ -8,7 +8,8 @@ SPDX-License-Identifier: CC0-1.0
 A classic 3D-bevel theme (late-'90s style) for KDE Plasma 6, drawn in code and crisp at every
 scale.
 
-> **Status:** early development, not usable yet.
+> **Status:** early development. The window decoration, color schemes and Plasma styles work;
+> the application style is not written yet.
 
 ## Goal
 

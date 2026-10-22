@@ -219,7 +219,7 @@ int Decoration::titleHeight() const
 QRect Decoration::titleRect() const
 {
     const int f = frameWidth();
-    return QRect(f, f, int(size().width()) - 2 * f, titleHeight());
+    return QRect(f, f, std::max(0, int(size().width()) - 2 * f), titleHeight());
 }
 
 void Decoration::updateLayout()
@@ -396,18 +396,17 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
     // Title bar: solid, or a horizontal gradient from the title color to the blend color.
     const QRect title = titleRect();
     const TitleColors colors = titleColors(w->isActive());
-    const QColor &background = colors.background;
-    const QColor &blend = colors.blend;
-    const QColor &foreground = colors.foreground;
-    if (m_config->titleBarStyle() == DecorationConfig::EnumTitleBarStyle::Solid || !blend.isValid()) {
-        fillRect(painter, title, background);
+    if (m_config->titleBarStyle() == DecorationConfig::EnumTitleBarStyle::Solid) {
+        fillRect(painter, title, colors.background);
     } else {
         PixelPainter pp(painter);
         const QRect device = pp.toDevice(title);
-        QLinearGradient gradient(device.topLeft(), device.topRight());
-        gradient.setColorAt(0, background);
-        gradient.setColorAt(1, blend);
-        painter->fillRect(device, gradient);
+        if (device.isValid()) {
+            QLinearGradient gradient(device.topLeft(), device.topRight());
+            gradient.setColorAt(0, colors.background);
+            gradient.setColorAt(1, colors.blend);
+            painter->fillRect(device, gradient);
+        }
     }
 
     // Caption text between the left and right buttons.
@@ -425,7 +424,7 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
         QFont font = settings()->font();
         font.setWeight(titleWeight(m_config->titleWeight()));
         painter->setFont(font);
-        painter->setPen(foreground);
+        painter->setPen(colors.foreground);
         const QString caption = painter->fontMetrics().elidedText(w->caption(), Qt::ElideRight, textRect.width());
         painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter | Qt::TextSingleLine, caption);
         painter->restore();

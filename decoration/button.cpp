@@ -85,11 +85,14 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
     const bool hovered = isHovered() && !down;
 
     // "Slightly pressed" hover: the whole button sinks by one device pixel and stays there while
-    // pressed. There is always room below: the title bar is followed by a separator row.
-    const bool nudged = hover == DecorationConfig::EnumButtonHover::Nudge && (isHovered() || down);
+    // the mouse holds it. There is always room below: the title bar is followed by a separator
+    // row. Toggled buttons do not sink: their state can change without a hover or press event,
+    // which is when the row below gets repainted.
+    const bool nudged = hover == DecorationConfig::EnumButtonHover::Nudge && (isHovered() || isPressed());
+    const qreal deviceScale = painter->deviceTransform().m22();
     painter->save();
-    if (nudged) {
-        painter->translate(0, 1.0 / painter->deviceTransform().m22());
+    if (nudged && deviceScale > 0) {
+        painter->translate(0, 1.0 / deviceScale);
     }
 
     QColor face = pal.color(QPalette::Button);

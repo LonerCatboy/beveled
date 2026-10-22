@@ -135,6 +135,31 @@ private Q_SLOTS:
             });
     }
 
+    // Rectangles too small for a bevel, empty or inverted (e.g. a window narrower than its
+    // borders) must not draw outside themselves.
+    void degenerate()
+    {
+        const QPalette p = TestUtils::testPalette();
+        const QList<QRect> rects = {QRect(2, 2, 1, 1), QRect(2, 2, 3, 2), QRect(2, 2, 0, 0), QRect(4, 4, -3, -2)};
+        for (const QRect &rect : rects) {
+            for (const int scale : {1, 2}) {
+                const QImage image = TestUtils::render(QSize(8, 8), scale, [&](QPainter *painter) {
+                    drawBevel(painter, rect, BevelStyle::Window, p);
+                    fillRect(painter, rect, p.color(QPalette::Button));
+                });
+                const QRect allowed = rect.isValid() ? QRect(rect.topLeft() * scale, rect.size() * scale) : QRect();
+                for (int y = 0; y < image.height(); ++y) {
+                    for (int x = 0; x < image.width(); ++x) {
+                        if (!allowed.contains(x, y)) {
+                            QVERIFY2(image.pixel(x, y) == TestUtils::Untouched.rgb(),
+                                qPrintable(QStringLiteral("%1x%2 at scale %3: pixel %4,%5").arg(rect.width()).arg(rect.height()).arg(scale).arg(x).arg(y)));
+                        }
+                    }
+                }
+            }
+        }
+    }
+
     // Rings wider than one pixel: each ring is a solid band, corners stay blocky.
     void ringWidth()
     {
