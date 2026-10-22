@@ -1,0 +1,20 @@
+# SPDX-FileCopyrightText: 2026 LonerCatboy
+# SPDX-License-Identifier: CC0-1.0
+
+# Build
+/build/
+/build-*/
+compile_commands.json
+CMakeUserPresets.json
+
+# Editor / clangd
+/.cache/
+*.user
+*.swp
+*~
+
+# Output dei test pixel
+/tests/output/
+
+# Preferenze personali di Claude Code
+/.claude/settings.local.json
