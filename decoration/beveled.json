@@ -4,6 +4,7 @@
         "EnabledByDefault": true,
         "Name": "Beveled"
     },
+    "X-KDE-ConfigModule": "kcm_beveleddecoration",
     "org.kde.kdecoration3": {
         "blur": false,
         "recommendedBorderSize": "Normal"

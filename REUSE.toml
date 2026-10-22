@@ -2,7 +2,7 @@ version = 1
 
 # Files that cannot carry an SPDX header (JSON) and REUSE.toml itself.
 [[annotations]]
-path = ["CMakePresets.json", "REUSE.toml", "decoration/beveled.json"]
+path = ["CMakePresets.json", "REUSE.toml", "decoration/beveled.json", "decoration/kcm/kcm_beveleddecoration.json"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 LonerCatboy"
 SPDX-License-Identifier = "CC0-1.0"

@@ -3,6 +3,7 @@
 
 #include "button.h"
 
+#include "beveledconfig.h"
 #include "decoration.h"
 
 #include <beveled/bevel.h>
@@ -58,7 +59,12 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
     const QPalette pal = deco->palette();
     const bool down = isPressed();
     fillRect(painter, r, pal.color(QPalette::Button));
-    drawBevel(painter, r, down ? BevelStyle::Pushed : BevelStyle::Raised, pal);
+    const bool hard = deco->config().buttonBevel() == DecorationConfig::EnumButtonBevel::Hard;
+    if (hard) {
+        drawBevel(painter, r, down ? BevelStyle::PushedHard : BevelStyle::RaisedHard, pal);
+    } else {
+        drawBevel(painter, r, down ? BevelStyle::Pushed : BevelStyle::Raised, pal);
+    }
 
     Glyph glyph = Glyph::Close;
     if (type() == DecorationButtonType::Minimize) {

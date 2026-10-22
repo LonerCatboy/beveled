@@ -1,0 +1,7 @@
+{
+    "KPlugin": {
+        "Description": "Options of the Beveled window decoration",
+        "Icon": "preferences-system-windows",
+        "Name": "Beveled Window Decoration"
+    }
+}

@@ -3,6 +3,7 @@
 
 #include "decoration.h"
 
+#include "beveledconfig.h"
 #include "button.h"
 
 #include <beveled/bevel.h>
@@ -63,6 +64,7 @@ int padding(KDecoration3::BorderSize size)
 
 Decoration::Decoration(QObject *parent, const QVariantList &args)
     : KDecoration3::Decoration(parent, args)
+    , m_config(std::make_unique<DecorationConfig>())
 {
 }
 
@@ -72,6 +74,13 @@ bool Decoration::init()
 {
     KDecoration3::DecoratedWindow *w = window();
     const auto s = settings();
+
+    m_config->load(); // the generated class starts with default values
+    m_configWatcher = KConfigWatcher::create(m_config->sharedConfig());
+    connect(m_configWatcher.data(), &KConfigWatcher::configChanged, this, [this] {
+        m_config->load();
+        updateLayout();
+    });
 
     readTitleBlend();
     m_globalsWatcher = KConfigWatcher::create(KSharedConfig::openConfig(QStringLiteral("kdeglobals")));
@@ -107,6 +116,11 @@ QPalette Decoration::palette() const
     return p;
 }
 
+const DecorationConfig &Decoration::config() const
+{
+    return *m_config;
+}
+
 bool Decoration::hasFrame() const
 {
     const KDecoration3::BorderSize size = settings()->borderSize();
@@ -120,7 +134,8 @@ int Decoration::frameWidth() const
 
 int Decoration::titleHeight() const
 {
-    return std::max(MinTitleHeight, int(std::ceil(settings()->fontMetrics().height())) + 2);
+    // Button padding grows the caption buttons, and the title bar with them.
+    return std::max(MinTitleHeight, int(std::ceil(settings()->fontMetrics().height())) + 2) + 2 * m_config->buttonPadding();
 }
 
 QRect Decoration::titleRect() const
@@ -231,17 +246,19 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
         drawBevel(painter, full, BevelStyle::Window, pal);
     }
 
-    // Title bar: horizontal gradient from the title color to the blend color.
+    // Title bar: solid, or a horizontal gradient from the title color to the blend color.
     const QRect title = titleRect();
     const KDecoration3::ColorGroup group = w->isActive() ? KDecoration3::ColorGroup::Active : KDecoration3::ColorGroup::Inactive;
     const QColor background = w->color(group, KDecoration3::ColorRole::TitleBar);
     const QColor blend = w->isActive() ? m_activeBlend : m_inactiveBlend;
-    {
+    if (m_config->titleBarStyle() == DecorationConfig::EnumTitleBarStyle::Solid || !blend.isValid()) {
+        fillRect(painter, title, background);
+    } else {
         PixelPainter pp(painter);
         const QRect device = pp.toDevice(title);
         QLinearGradient gradient(device.topLeft(), device.topRight());
         gradient.setColorAt(0, background);
-        gradient.setColorAt(1, blend.isValid() ? blend : background);
+        gradient.setColorAt(1, blend);
         painter->fillRect(device, gradient);
     }
 

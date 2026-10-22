@@ -10,11 +10,18 @@ kcoreaddons_add_plugin(beveled
         button.cpp
     INSTALL_NAMESPACE "${KDECORATION_PLUGIN_DIR}"
 )
+kconfig_add_kcfg_files(beveled beveledconfig.kcfgc)
 
 target_link_libraries(beveled PRIVATE
     Beveled::Core
     KDecoration3::KDecoration
-    KF6::ConfigCore
+    KF6::ConfigGui
     KF6::CoreAddons
     Qt6::Gui
 )
+
+add_subdirectory(kcm)
+
+if(BUILD_TESTING)
+    add_subdirectory(autotests)
+endif()

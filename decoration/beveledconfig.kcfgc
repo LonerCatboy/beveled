@@ -1,0 +1,10 @@
+# SPDX-FileCopyrightText: 2026 LonerCatboy
+# SPDX-License-Identifier: CC0-1.0
+File=beveledconfig.kcfg
+ClassName=DecorationConfig
+NameSpace=Beveled
+ParentInConstructor=true
+Mutators=true
+ItemAccessors=true
+# Writes with KConfig::Notify, so running decorations see changes through KConfigWatcher.
+Notifiers=true

@@ -20,7 +20,7 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Gui Widgets)
-find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS ColorScheme Config CoreAddons)
+find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS ColorScheme Config ConfigWidgets CoreAddons KCMUtils)
 find_package(KDecoration3 6.3 REQUIRED)
 
 # Components (libbeveled, style, decoration, ...) are added below.

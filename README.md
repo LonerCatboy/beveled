@@ -44,7 +44,8 @@ Build dependencies (Fedora):
 
 ```bash
 sudo dnf install git cmake ninja-build gcc-c++ extra-cmake-modules qt6-qtbase-devel \
-  kf6-kconfig-devel kf6-kcoreaddons-devel kf6-kcolorscheme-devel kdecoration-devel
+  kf6-kconfig-devel kf6-kcoreaddons-devel kf6-kcolorscheme-devel kf6-kconfigwidgets-devel \
+  kf6-kcmutils-devel kdecoration-devel
 ```
 
 Build, test and install:
@@ -59,8 +60,18 @@ sudo cmake --install build-vm
 Then choose **Beveled** in System Settings → Colors & Themes → Window Decorations, and
 **Beveled Classic** in Colors.
 
-After updating (`git pull` and the commands above), log out and back in: KWin keeps the
-previously loaded plugin in memory.
+The decoration options (title bar style, button bevel, button padding) are behind the edit
+button of Beveled in Window Decorations, and are stored in `~/.config/beveledrc`.
+
+To update, there is no need to uninstall first: the new install overwrites the old files.
+
+```bash
+git pull
+cmake --build --preset vm
+sudo cmake --install build-vm
+```
+
+Then log out and back in: KWin keeps the previously loaded plugin in memory.
 
 Uninstall:
 
