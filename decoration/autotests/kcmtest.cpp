@@ -120,20 +120,37 @@ private Q_SLOTS:
         QCOMPARE(child<QSlider>("kcfg_ButtonPadding")->value(), 4);
     }
 
-    // The flat classic preset sets every option it lists, and the preset menu resets itself.
+    // The preset menu follows the options: the defaults are the classic gradient preset, any
+    // change makes it "Custom", and picking a preset sets its options and stays selected.
     void preset()
     {
-        child<QComboBox>("kcfg_ShadowStyle")->setCurrentIndex(2);
-        child<QCheckBox>("kcfg_BoldTitle")->setChecked(false);
         auto preset = child<QComboBox>("preset");
-        QVERIFY(preset->count() > 1);
-        preset->setCurrentIndex(1);
-        Q_EMIT preset->activated(1);
+        const int custom = preset->count() - 1;
+        QCOMPARE(preset->itemText(custom), QStringLiteral("Custom"));
+
+        m_kcm->defaults();
         QCOMPARE(preset->currentIndex(), 0);
-        QCOMPARE(child<QComboBox>("kcfg_TitleBarStyle")->currentIndex(), 1);
-        QCOMPARE(child<QComboBox>("kcfg_ShadowStyle")->currentIndex(), 0);
-        QVERIFY(child<QCheckBox>("kcfg_BoldTitle")->isChecked());
+        child<QSlider>("kcfg_ShadeDepth")->setValue(110);
+        QCOMPARE(preset->currentIndex(), custom);
+
+        // Picking Modern from saved defaults enables Apply.
+        m_kcm->defaults();
+        m_kcm->save();
+        m_kcm->load();
+        QVERIFY(!m_kcm->needsSave());
+        const int modern = preset->findText(QStringLiteral("Modern"));
+        preset->setCurrentIndex(modern);
+        Q_EMIT preset->activated(modern);
+        QCOMPARE(preset->currentIndex(), modern);
         QVERIFY(m_kcm->needsSave());
+        QCOMPARE(child<QComboBox>("kcfg_FrameBevel")->currentIndex(), 1);
+        QCOMPARE(child<QComboBox>("kcfg_ButtonBevel")->currentIndex(), 1);
+        QCOMPARE(child<QSlider>("kcfg_ShadeDepth")->value(), 80);
+
+        // Reopening the module after saving shows the saved preset.
+        m_kcm->save();
+        m_kcm->load();
+        QCOMPARE(preset->currentIndex(), modern);
     }
 
     void restoreDefaults()

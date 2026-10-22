@@ -64,6 +64,20 @@ int padding(KDecoration3::BorderSize size)
     return 2;
 }
 
+QFont::Weight titleWeight(int option)
+{
+    switch (option) {
+    case DecorationConfig::EnumTitleWeight::Medium:
+        return QFont::Medium;
+    case DecorationConfig::EnumTitleWeight::SemiBold:
+        return QFont::DemiBold;
+    case DecorationConfig::EnumTitleWeight::Bold:
+        return QFont::Bold;
+    default:
+        return QFont::Normal;
+    }
+}
+
 // With the accent color option, the gradient fades from the accent towards the Light color.
 constexpr qreal AccentBlendAmount = 0.6;
 // With the inactive tint option, share of the active title colors mixed into inactive title bars.
@@ -409,7 +423,7 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
         const QRect textRect(textLeft, title.top(), textRight - textLeft, title.height());
         painter->save();
         QFont font = settings()->font();
-        font.setBold(m_config->boldTitle());
+        font.setWeight(titleWeight(m_config->titleWeight()));
         painter->setFont(font);
         painter->setPen(foreground);
         const QString caption = painter->fontMetrics().elidedText(w->caption(), Qt::ElideRight, textRect.width());

@@ -14,6 +14,8 @@
 #include <QLabel>
 #include <QSlider>
 
+#include <algorithm>
+
 namespace Beveled {
 
 namespace {
@@ -60,6 +62,7 @@ QCheckBox *addCheck(QFormLayout *layout, const QString &text, const QString &ent
 }
 
 // A preset sets several options at once, by entry name; combo boxes take the choice index.
+// Every preset lists the same entries, so that the preset menu can tell which one is in use.
 struct Preset
 {
     QString name;
@@ -68,55 +71,57 @@ struct Preset
 
 QList<Preset> presets()
 {
-    const auto classic = [](int titleBarStyle) {
+    const auto values = [](int titleBarStyle, bool modern) {
         return QList<std::pair<QString, int>> {
             {QStringLiteral("TitleBarStyle"), titleBarStyle},
-            {QStringLiteral("AccentTitleBar"), 0},
-            {QStringLiteral("TintInactiveTitle"), 0},
-            {QStringLiteral("BoldTitle"), 1},
-            {QStringLiteral("FrameBevel"), 0},
-            {QStringLiteral("ShadeDepth"), 100},
-            {QStringLiteral("ButtonBevel"), 0},
-            {QStringLiteral("ButtonHover"), 0},
+            {QStringLiteral("AccentTitleBar"), modern},
+            {QStringLiteral("TintInactiveTitle"), modern},
+            {QStringLiteral("TitleWeight"), DecorationConfig::EnumTitleWeight::Normal},
+            {QStringLiteral("FrameBevel"), modern ? DecorationConfig::EnumFrameBevel::Hard : DecorationConfig::EnumFrameBevel::Soft},
+            {QStringLiteral("ShadeDepth"), modern ? 80 : 100},
+            {QStringLiteral("ButtonBevel"), modern ? DecorationConfig::EnumButtonBevel::Hard : DecorationConfig::EnumButtonBevel::Soft},
+            {QStringLiteral("ButtonHover"), modern ? DecorationConfig::EnumButtonHover::Highlight : DecorationConfig::EnumButtonHover::None},
             {QStringLiteral("ButtonMargin"), 2},
             {QStringLiteral("ButtonPadding"), 0},
-            {QStringLiteral("ShadowStyle"), 0},
+            {QStringLiteral("ShadowStyle"), DecorationConfig::EnumShadowStyle::Soft},
+            {QStringLiteral("ShadowDistance"), 4},
         };
     };
     return {
-        {QStringLiteral("Classic, flat title bar"), classic(1)},
-        {QStringLiteral("Classic, gradient title bar"), classic(0)},
-        {QStringLiteral("Modern"),
-            {
-                {QStringLiteral("TitleBarStyle"), 0},
-                {QStringLiteral("AccentTitleBar"), 1},
-                {QStringLiteral("TintInactiveTitle"), 1},
-                {QStringLiteral("BoldTitle"), 0},
-                {QStringLiteral("FrameBevel"), 0},
-                {QStringLiteral("ShadeDepth"), 80},
-                {QStringLiteral("ButtonBevel"), 0},
-                {QStringLiteral("ButtonHover"), 1},
-                {QStringLiteral("ButtonMargin"), 2},
-                {QStringLiteral("ButtonPadding"), 0},
-                {QStringLiteral("ShadowStyle"), 1},
-                {QStringLiteral("ShadowDistance"), 4},
-            }},
+        {QStringLiteral("Classic, gradient title bar"), values(DecorationConfig::EnumTitleBarStyle::Gradient, false)},
+        {QStringLiteral("Classic, flat title bar"), values(DecorationConfig::EnumTitleBarStyle::Solid, false)},
+        {QStringLiteral("Modern"), values(DecorationConfig::EnumTitleBarStyle::Gradient, true)},
     };
 }
 
-// Sets the managed widgets; KCModule then sees the changes like any user edit.
-void applyPreset(QWidget *form, const Preset &preset)
+int widgetValue(const QWidget *widget)
 {
-    for (const auto &[entry, value] : preset.values) {
-        QWidget *widget = form->findChild<QWidget *>(QStringLiteral("kcfg_") + entry);
-        if (auto combo = qobject_cast<QComboBox *>(widget)) {
-            combo->setCurrentIndex(value);
-        } else if (auto check = qobject_cast<QCheckBox *>(widget)) {
-            check->setChecked(value != 0);
-        } else if (auto slider = qobject_cast<QSlider *>(widget)) {
-            slider->setValue(value);
-        }
+    if (auto combo = qobject_cast<const QComboBox *>(widget)) {
+        return combo->currentIndex();
     }
+    if (auto check = qobject_cast<const QCheckBox *>(widget)) {
+        return check->isChecked();
+    }
+    if (auto slider = qobject_cast<const QSlider *>(widget)) {
+        return slider->value();
+    }
+    return -1;
+}
+
+void setWidgetValue(QWidget *widget, int value)
+{
+    if (auto combo = qobject_cast<QComboBox *>(widget)) {
+        combo->setCurrentIndex(value);
+    } else if (auto check = qobject_cast<QCheckBox *>(widget)) {
+        check->setChecked(value != 0);
+    } else if (auto slider = qobject_cast<QSlider *>(widget)) {
+        slider->setValue(value);
+    }
+}
+
+QWidget *optionWidget(QWidget *form, const QString &entry)
+{
+    return form->findChild<QWidget *>(QStringLiteral("kcfg_") + entry);
 }
 
 void addSpacer(QFormLayout *layout)
@@ -132,26 +137,31 @@ DecorationKcm::DecorationKcm(QObject *parent, const KPluginMetaData &data)
 {
     auto layout = new QFormLayout(widget());
 
-    // Not a stored option: picking a preset fills in the widgets below, then the menu resets.
-    auto preset = new QComboBox(widget());
-    preset->setObjectName(QStringLiteral("preset"));
-    preset->addItem(QStringLiteral("Choose a preset..."));
+    // Not a stored option: the menu shows the preset matching the current options, or "Custom".
+    // Picking a preset fills in the widgets below, which KCModule sees like any user edit.
+    m_preset = new QComboBox(widget());
+    m_preset->setObjectName(QStringLiteral("preset"));
     for (const Preset &p : presets()) {
-        preset->addItem(p.name);
+        m_preset->addItem(p.name);
     }
-    connect(preset, &QComboBox::activated, this, [this, preset](int index) {
-        if (index > 0) {
-            applyPreset(widget(), presets().at(index - 1));
-            preset->setCurrentIndex(0);
+    m_preset->addItem(QStringLiteral("Custom"));
+    connect(m_preset, &QComboBox::activated, this, [this](int index) {
+        const QList<Preset> all = presets(); // keep alive: a range-for over presets().at(i) would dangle
+        if (index < all.size()) {
+            for (const auto &[entry, value] : all.at(index).values) {
+                setWidgetValue(optionWidget(widget(), entry), value);
+            }
         }
+        updatePreset();
     });
-    layout->addRow(QStringLiteral("Preset:"), preset);
+    layout->addRow(QStringLiteral("Preset:"), m_preset);
     addSpacer(layout);
 
     addChoice(layout, QStringLiteral("Title bar:"), QStringLiteral("TitleBarStyle"), {QStringLiteral("Gradient"), QStringLiteral("Solid color")});
     addCheck(layout, QStringLiteral("Use the accent color for the active title bar"), QStringLiteral("AccentTitleBar"));
     addCheck(layout, QStringLiteral("Tint inactive title bars with the active title color"), QStringLiteral("TintInactiveTitle"));
-    addCheck(layout, QStringLiteral("Bold title text"), QStringLiteral("BoldTitle"));
+    addChoice(layout, QStringLiteral("Title text weight:"), QStringLiteral("TitleWeight"),
+        {QStringLiteral("Normal"), QStringLiteral("Medium"), QStringLiteral("Semi-bold"), QStringLiteral("Bold")});
     addChoice(layout, QStringLiteral("Window frame:"), QStringLiteral("FrameBevel"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
     addSlider(layout, QStringLiteral("Bevel shade depth:"), m_config->shadeDepthItem(), 10, QStringLiteral("%"));
 
@@ -171,12 +181,49 @@ DecorationKcm::DecorationKcm(QObject *parent, const KPluginMetaData &data)
 
     addConfig(m_config, widget());
     updateDistance();
+
+    // Any option change may turn a preset into "Custom" or match another preset.
+    for (QWidget *option : widget()->findChildren<QWidget *>()) {
+        if (!option->objectName().startsWith(QLatin1String("kcfg_"))) {
+            continue;
+        }
+        if (auto combo = qobject_cast<QComboBox *>(option)) {
+            connect(combo, &QComboBox::currentIndexChanged, this, &DecorationKcm::updatePreset);
+        } else if (auto check = qobject_cast<QCheckBox *>(option)) {
+            connect(check, &QCheckBox::toggled, this, &DecorationKcm::updatePreset);
+        } else if (auto slider = qobject_cast<QSlider *>(option)) {
+            connect(slider, &QSlider::valueChanged, this, &DecorationKcm::updatePreset);
+        }
+    }
+    updatePreset();
 }
 
 void DecorationKcm::load()
 {
     m_config->load();
     KCModule::load();
+    updatePreset();
+}
+
+void DecorationKcm::defaults()
+{
+    KCModule::defaults();
+    updatePreset();
+}
+
+void DecorationKcm::updatePreset()
+{
+    const QList<Preset> all = presets();
+    int match = all.size(); // "Custom"
+    for (int i = 0; i < all.size(); ++i) {
+        const bool matches = std::all_of(all.at(i).values.cbegin(), all.at(i).values.cend(),
+            [this](const auto &entry) { return widgetValue(optionWidget(widget(), entry.first)) == entry.second; });
+        if (matches) {
+            match = i;
+            break;
+        }
+    }
+    m_preset->setCurrentIndex(match);
 }
 
 } // namespace Beveled

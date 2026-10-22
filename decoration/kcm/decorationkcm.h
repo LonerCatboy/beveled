@@ -5,6 +5,8 @@
 
 #include <KCModule>
 
+class QComboBox;
+
 namespace Beveled {
 
 class DecorationConfig;
@@ -20,9 +22,14 @@ public:
 
     // KCModule only refreshes the widgets from the skeleton; read beveledrc first.
     void load() override;
+    void defaults() override;
 
 private:
+    // Shows the preset matching the current options, or "Custom".
+    void updatePreset();
+
     DecorationConfig *m_config;
+    QComboBox *m_preset;
 };
 
 } // namespace Beveled
