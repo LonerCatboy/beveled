@@ -175,6 +175,10 @@ def task_frames():
     pushed = {"top": 4, "left": 4, "bottom": 2, "right": 2}
     frames.append(bevel_frame("focus", PUSHED_HARD, pushed, LIGHTER, **inset))
     frames.append(bevel_frame("attention", RAISED_HARD, uniform(3), HIGHLIGHT, **inset))
+    # Under the mouse, the task manager looks for "<state>-hover" first, then "hover": without
+    # these, the active task would pop out (raised "hover") whenever it is hovered.
+    frames.append(bevel_frame("focus-hover", PUSHED_HARD, pushed, LIGHTER, **inset))
+    frames.append(bevel_frame("attention-hover", RAISED_HARD, uniform(3), HIGHLIGHT, **inset))
     # Progress is drawn over the task: a flat bar in the selection color, inside the bevel.
     bar_x, bar_y = TASK_INSET_X + 2, TASK_INSET_Y + 2
     grid = [[CLEAR] * (2 * bar_x + 1) for _ in range(2 * bar_y + 1)]
@@ -224,12 +228,15 @@ def tabbar_frames():
 
 
 def plasmoidheading_frames():
-    # Popup header and footer: the face with an etched line (Dark over Light) towards the
-    # content. Both share the unprefixed margin hints, written once with the header.
-    face_rows = [[FACE] * 5 for _ in range(3)]
-    etched_line = [[DARK] * 5, [LIGHT] * 5]
-    header = Frame("header", face_rows + etched_line, 2, 2, uniform(6), hint_prefix="")
-    footer = Frame("footer", etched_line + face_rows, 2, 2, None)
+    # Popup header and footer. Plasma stretches them over the popup's own border, so they must
+    # repeat the popup bevel on their outer sides; towards the content they end with an etched
+    # line (Dark over Light) between the side bevels. Both share the unprefixed margin hints,
+    # written once with the header.
+    header = bevel_frame("header", WINDOW, uniform(6), open_side="bottom")
+    header.grid[3][2], header.grid[4][2] = DARK, LIGHT
+    header.hint_prefix = ""
+    footer = bevel_frame("footer", WINDOW, None, open_side="top")
+    footer.grid[0][2], footer.grid[1][2] = DARK, LIGHT
     return [header, footer]
 
 
