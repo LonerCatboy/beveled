@@ -63,6 +63,9 @@ int padding(KDecoration3::BorderSize size)
     return 2;
 }
 
+// With the accent color option, the gradient fades from the accent towards the Light color.
+constexpr qreal AccentBlendAmount = 0.6;
+
 // Shadow opacity (0-255), applied to the palette's Shadow color.
 constexpr int SoftShadowAlpha = 140;
 constexpr int SolidShadowAlpha = 110;
@@ -173,18 +176,23 @@ int Decoration::frameWidth() const
     return hasFrame() ? BevelWidth + padding(settings()->borderSize()) : 0;
 }
 
-// Caption buttons are 14px tall as in the classic layout, taller for large title fonts, and
-// grow further with the button padding option.
-int Decoration::buttonHeight() const
+int Decoration::fontHeight() const
 {
-    const int fontHeight = int(std::ceil(settings()->fontMetrics().height()));
-    return std::max(CaptionButtonSize.height(), fontHeight - 2) + 2 * m_config->buttonPadding();
+    return int(std::ceil(settings()->fontMetrics().height()));
 }
 
-// The title bar wraps the buttons with the button margin option (2px in the classic layout).
+// Caption buttons are 14px tall as in the classic layout; only fonts much taller than the classic
+// 8pt title font make them grow. The button padding option adds to that.
+int Decoration::buttonHeight() const
+{
+    return std::max(CaptionButtonSize.height(), fontHeight() - 4) + 2 * m_config->buttonPadding();
+}
+
+// The title bar wraps the buttons with the button margin option (2px in the classic layout), but
+// is never shorter than the caption text; buttons are then centered vertically.
 int Decoration::titleHeight() const
 {
-    return buttonHeight() + 2 * m_config->buttonMargin();
+    return std::max(buttonHeight() + 2 * m_config->buttonMargin(), fontHeight());
 }
 
 QRect Decoration::titleRect() const
@@ -237,6 +245,7 @@ void Decoration::layoutButtons()
     const int margin = m_config->buttonMargin();
     const int h = buttonHeight();
     const QSize captionSize(h + 2, h);
+    const int top = title.top() + (title.height() - h) / 2;
     const int iconSize = title.height() - 2;
 
     int x = title.left() + IconMargin;
@@ -252,7 +261,7 @@ void Decoration::layoutButtons()
             if (i == 0) {
                 x = title.left() + margin;
             }
-            button->setGeometry(QRectF(QPointF(x, title.top() + margin), captionSize));
+            button->setGeometry(QRectF(QPointF(x, top), captionSize));
             x += captionSize.width();
         }
     }
@@ -270,7 +279,7 @@ void Decoration::layoutButtons()
             x -= IconMargin;
         } else {
             x -= captionSize.width();
-            button->setGeometry(QRectF(QPointF(x, title.top() + margin), captionSize));
+            button->setGeometry(QRectF(QPointF(x, top), captionSize));
         }
     }
 }
@@ -315,8 +324,15 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
     // Title bar: solid, or a horizontal gradient from the title color to the blend color.
     const QRect title = titleRect();
     const KDecoration3::ColorGroup group = w->isActive() ? KDecoration3::ColorGroup::Active : KDecoration3::ColorGroup::Inactive;
-    const QColor background = w->color(group, KDecoration3::ColorRole::TitleBar);
-    const QColor blend = w->isActive() ? m_activeBlend : m_inactiveBlend;
+    QColor background = w->color(group, KDecoration3::ColorRole::TitleBar);
+    QColor blend = w->isActive() ? m_activeBlend : m_inactiveBlend;
+    QColor foreground = w->color(group, KDecoration3::ColorRole::Foreground);
+    if (w->isActive() && m_config->accentTitleBar()) {
+        // KDE writes the accent color into the selection colors, so Highlight is the accent.
+        background = pal.color(QPalette::Active, QPalette::Highlight);
+        blend = mix(background, pal.color(QPalette::Active, QPalette::Light), AccentBlendAmount);
+        foreground = pal.color(QPalette::Active, QPalette::HighlightedText);
+    }
     if (m_config->titleBarStyle() == DecorationConfig::EnumTitleBarStyle::Solid || !blend.isValid()) {
         fillRect(painter, title, background);
     } else {
@@ -341,7 +357,7 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
         const QRect textRect(textLeft, title.top(), textRight - textLeft, title.height());
         painter->save();
         painter->setFont(settings()->font());
-        painter->setPen(w->color(group, KDecoration3::ColorRole::Foreground));
+        painter->setPen(foreground);
         const QString caption = painter->fontMetrics().elidedText(w->caption(), Qt::ElideRight, textRect.width());
         painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter | Qt::TextSingleLine, caption);
         painter->restore();

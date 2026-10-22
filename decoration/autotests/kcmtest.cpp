@@ -7,6 +7,7 @@
 #include <KPluginMetaData>
 #include <KSharedConfig>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFile>
 #include <QSlider>
@@ -58,6 +59,7 @@ private Q_SLOTS:
     {
         QCOMPARE(child<QComboBox>("kcfg_TitleBarStyle")->currentIndex(), 0);
         QCOMPARE(child<QComboBox>("kcfg_ButtonBevel")->currentIndex(), 0);
+        QVERIFY(!child<QCheckBox>("kcfg_AccentTitleBar")->isChecked());
         QCOMPARE(child<QComboBox>("kcfg_FrameBevel")->currentIndex(), 0);
         QCOMPARE(child<QComboBox>("kcfg_ButtonHover")->currentIndex(), 0);
         QCOMPARE(child<QComboBox>("kcfg_ShadowStyle")->currentIndex(), 1);
@@ -79,6 +81,7 @@ private Q_SLOTS:
         child<QComboBox>("kcfg_ButtonBevel")->setCurrentIndex(1);
         child<QSlider>("kcfg_ButtonPadding")->setValue(3);
         child<QSlider>("kcfg_ButtonMargin")->setValue(0);
+        child<QCheckBox>("kcfg_AccentTitleBar")->setChecked(true);
         child<QComboBox>("kcfg_ButtonHover")->setCurrentIndex(2);
         child<QComboBox>("kcfg_ShadowStyle")->setCurrentIndex(2);
         child<QSlider>("kcfg_ShadeDepth")->setValue(130);
@@ -90,6 +93,7 @@ private Q_SLOTS:
         QCOMPARE(g.readEntry("ButtonBevel"), QStringLiteral("Hard"));
         QCOMPARE(g.readEntry("ButtonPadding", -1), 3);
         QCOMPARE(g.readEntry("ButtonMargin", -1), 0);
+        QCOMPARE(g.readEntry("AccentTitleBar", false), true);
         QCOMPARE(g.readEntry("ButtonHover"), QStringLiteral("Nudge"));
         QCOMPARE(g.readEntry("ShadowStyle"), QStringLiteral("Solid"));
         QCOMPARE(g.config()->group(QStringLiteral("General")).readEntry("ShadeDepth", -1), 130);

@@ -32,6 +32,10 @@ SPDX-License-Identifier: CC0-1.0
       </choices>
       <default>Soft</default>
     </entry>
+    <!-- Paint the active title bar with the accent color instead of the scheme's title colors. -->
+    <entry name="AccentTitleBar" type="Bool">
+      <default>false</default>
+    </entry>
     <entry name="FrameBevel" type="Enum">
       <choices>
         <choice name="Soft"/>

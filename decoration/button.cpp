@@ -8,6 +8,7 @@
 
 #include <beveled/bevel.h>
 #include <beveled/glyphs.h>
+#include <beveled/shades.h>
 
 #include <KDecoration3/DecoratedWindow>
 
@@ -20,12 +21,7 @@ using KDecoration3::DecorationButtonType;
 
 namespace {
 
-constexpr qreal HoverTint = 0.2; // share of the selection color in a highlighted button face
-
-QColor mix(const QColor &a, const QColor &b, qreal t)
-{
-    return QColor::fromRgbF(a.redF() + (b.redF() - a.redF()) * t, a.greenF() + (b.greenF() - a.greenF()) * t, a.blueF() + (b.blueF() - a.blueF()) * t);
-}
+constexpr qreal HoverLightening = 0.5; // share of the Light color in a highlighted button face
 
 } // namespace
 
@@ -89,8 +85,8 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
 
     QColor face = pal.color(QPalette::Button);
     if (hovered && hover == DecorationConfig::EnumButtonHover::Highlight) {
-        // A light tint of the selection color, like the hover of KDE's default buttons.
-        face = mix(face, pal.color(QPalette::Highlight), HoverTint);
+        // A lighter face, halfway to the bevel highlight; no hue change.
+        face = mix(face, pal.color(QPalette::Light), HoverLightening);
     }
     fillRect(painter, r, face);
     const bool hard = deco->config().buttonBevel() == DecorationConfig::EnumButtonBevel::Hard;

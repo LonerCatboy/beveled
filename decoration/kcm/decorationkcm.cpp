@@ -7,6 +7,7 @@
 
 #include <KPluginFactory>
 
+#include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
 #include <QHBoxLayout>
@@ -64,8 +65,11 @@ DecorationKcm::DecorationKcm(QObject *parent, const KPluginMetaData &data)
     auto layout = new QFormLayout(widget());
 
     addChoice(layout, QStringLiteral("Title bar:"), QStringLiteral("TitleBarStyle"), {QStringLiteral("Gradient"), QStringLiteral("Solid color")});
+    auto accent = new QCheckBox(QStringLiteral("Use the accent color for the active title bar"), widget());
+    accent->setObjectName(QStringLiteral("kcfg_AccentTitleBar"));
+    layout->addRow(QString(), accent);
     addChoice(layout, QStringLiteral("Window frame:"), QStringLiteral("FrameBevel"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
-    addSlider(layout, QStringLiteral("Shade depth:"), m_config->shadeDepthItem(), 10, QStringLiteral("%"));
+    addSlider(layout, QStringLiteral("Bevel shade depth:"), m_config->shadeDepthItem(), 10, QStringLiteral("%"));
 
     addSpacer(layout);
     addChoice(layout, QStringLiteral("Button bevel:"), QStringLiteral("ButtonBevel"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
