@@ -18,6 +18,7 @@
 #include <QStandardPaths>
 #include <QStyle>
 #include <QStyleFactory>
+#include <QTabBar>
 #include <QTest>
 
 #include <memory>
@@ -166,6 +167,45 @@ private Q_SLOTS:
         QMetaObject::invokeMethod(page.get(), "defaults");
         QCOMPARE(spacing->value(), 4);
         QMetaObject::invokeMethod(page.get(), "save");
+    }
+
+    // Square tabs: the selected tab's left edge is Light right below the top edge, where the
+    // classic tab clips the corner (window color there).
+    void squareTabs()
+    {
+        const auto renderTabs = [](const QString &shape) {
+            writeOption("TabShape", shape);
+            std::unique_ptr<QStyle> style(QStyleFactory::create(QStringLiteral("Beveled")));
+            QTabBar tabs;
+            tabs.setStyle(style.get());
+            tabs.addTab(QStringLiteral("One"));
+            tabs.addTab(QStringLiteral("Two"));
+            tabs.resize(tabs.sizeHint());
+            const QRect first = tabs.tabRect(0);
+            const QImage image = tabs.grab().toImage();
+            tabs.setStyle(nullptr);
+            return image.pixel(first.topLeft() + QPoint(0, 1));
+        };
+        const QPalette palette = QApplication::palette();
+        QCOMPARE(renderTabs(QStringLiteral("Square")), palette.color(QPalette::Light).rgb());
+        QVERIFY(renderTabs(QStringLiteral("Classic")) != palette.color(QPalette::Light).rgb());
+        writeOption("TabShape", QStringLiteral("Square"));
+    }
+
+    // When the options change, the application's style is replaced by a fresh instance, so
+    // running applications pick up the change.
+    void liveReload()
+    {
+        writeOption("LayoutSpacing", QStringLiteral("4"));
+        QApplication::setStyle(QStringLiteral("Beveled"));
+        QStyle *before = QApplication::style();
+        QCOMPARE(before->pixelMetric(QStyle::PM_LayoutHorizontalSpacing), 4);
+
+        writeOption("LayoutSpacing", QStringLiteral("9"));
+        QVERIFY(QMetaObject::invokeMethod(before, "reparseConfiguration"));
+        QTRY_VERIFY(QApplication::style() != before);
+        QCOMPARE(QApplication::style()->pixelMetric(QStyle::PM_LayoutHorizontalSpacing), 9);
+        writeOption("LayoutSpacing", QStringLiteral("4"));
     }
 
     // The application palette gets Beveled's 3D shades, as in the window decoration. Qt polishes

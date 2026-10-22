@@ -21,6 +21,7 @@ void buildStyleForm(QWidget *form, StyleConfig *config)
 
     addSlider(layout, QStringLiteral("Bevel shade depth:"), config->shadeDepthItem(), 10, QStringLiteral("%"));
     addChoice(layout, QStringLiteral("Sunken frames:"), QStringLiteral("SunkenFrame"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
+    addChoice(layout, QStringLiteral("Tabs:"), QStringLiteral("TabShape"), {QStringLiteral("Square"), QStringLiteral("Classic (clipped corners)")});
 
     addSpacer(layout);
     addSlider(layout, QStringLiteral("Button padding, sides:"), config->buttonPaddingXItem(), 1, QStringLiteral("px"));
@@ -32,9 +33,7 @@ void buildStyleForm(QWidget *form, StyleConfig *config)
     addSlider(layout, QStringLiteral("Space between controls:"), config->layoutSpacingItem(), 1, QStringLiteral("px"));
 
     addSpacer(layout);
-    auto note = new QLabel(QStringLiteral("Changes apply to applications started afterwards. The bevel shade depth is shared "
-                                          "with the Beveled window decoration."),
-        form);
+    auto note = new QLabel(QStringLiteral("The bevel shade depth is shared with the Beveled window decoration."), form);
     note->setWordWrap(true);
     layout->addRow(note);
 }

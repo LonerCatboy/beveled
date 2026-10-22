@@ -8,8 +8,14 @@
 #include <beveled/bevel.h>
 #include <beveled/shades.h>
 
+#include <beveled/pixelpainter.h>
+
+#include <KConfigGroup>
+
+#include <QApplication>
 #include <QStyleFactory>
 #include <QStyleOption>
+#include <QTabBar>
 
 #include <algorithm>
 
@@ -36,6 +42,27 @@ Style::Style()
     , m_config(std::make_unique<StyleConfig>())
 {
     m_config->load(); // the generated class starts with default values
+
+    // Settings pages write with KConfig::Notify, so every running application hears about it.
+    m_watcher = KConfigWatcher::create(m_config->sharedConfig());
+    connect(m_watcher.data(), &KConfigWatcher::configChanged, this, [this](const KConfigGroup &group) {
+        if (group.name() == QLatin1String("Style") || group.name() == QLatin1String("General")) {
+            reparseConfiguration();
+        }
+    });
+}
+
+void Style::reparseConfiguration()
+{
+    m_config->load();
+    if (QApplication::style() != this || m_restylePending) {
+        return;
+    }
+    // Sizes and the polished palette are computed when a style is set; setting the same object
+    // again is a no-op, so a fresh instance takes over. Queued: this object is deleted by Qt
+    // when it is replaced, which must not happen while one of its slots is running.
+    m_restylePending = true;
+    QMetaObject::invokeMethod(qApp, [] { QApplication::setStyle(QStringLiteral("Beveled")); }, Qt::QueuedConnection);
 }
 
 Style::~Style() = default;
@@ -99,6 +126,87 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
         }
     }
     QProxyStyle::drawPrimitive(element, option, painter, widget);
+}
+
+void Style::drawControl(ControlElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget) const
+{
+    if (element == CE_TabBarTabShape && m_config->tabShape() == StyleConfig::EnumTabShape::Square) {
+        if (const auto *tab = qstyleoption_cast<const QStyleOptionTab *>(option); tab && drawSquareTab(tab, painter, widget)) {
+            return;
+        }
+    }
+    QProxyStyle::drawControl(element, option, painter, widget);
+}
+
+// Same geometry as the Windows style's tabs (unselected tabs sit 2px lower and leave the edge
+// shared with a selected neighbor to it; the selected tab opens into its page), with square
+// corners: Light/Midlight on the leading sides, Shadow/Dark on the trailing ones.
+bool Style::drawSquareTab(const QStyleOptionTab *tab, QPainter *painter, const QWidget *widget) const
+{
+    const bool north = tab->shape == QTabBar::RoundedNorth || tab->shape == QTabBar::TriangularNorth;
+    const bool south = tab->shape == QTabBar::RoundedSouth || tab->shape == QTabBar::TriangularSouth;
+    if (!north && !south) {
+        return false;
+    }
+
+    const QPalette &pal = tab->palette;
+    const bool selected = tab->state & State_Selected;
+    const bool onlyOne = tab->position == QStyleOptionTab::OnlyOneTab;
+    const bool rtl = tab->direction == Qt::RightToLeft;
+    const bool first = onlyOne || tab->position == (rtl ? QStyleOptionTab::End : QStyleOptionTab::Beginning);
+    const bool last = onlyOne || tab->position == (rtl ? QStyleOptionTab::Beginning : QStyleOptionTab::End);
+    const bool leftSelected = tab->selectedPosition == (rtl ? QStyleOptionTab::NextIsSelected : QStyleOptionTab::PreviousIsSelected);
+    const bool rightSelected = tab->selectedPosition == (rtl ? QStyleOptionTab::PreviousIsSelected : QStyleOptionTab::NextIsSelected);
+
+    QRect r = tab->rect;
+    if (!selected) {
+        const int overlap = pixelMetric(PM_TabBarBaseOverlap, tab, widget);
+        if (north) {
+            r.setTop(r.top() + 2);
+        } else {
+            r.setBottom(r.bottom() - 2);
+        }
+        r.setLeft(r.left() + (first ? overlap / 2 : 0));
+        r.setRight(r.right() - (last ? overlap / 2 : 0));
+    }
+
+    PixelPainter pp(painter);
+    const QRect d = pp.toDevice(r);
+    const int u = pp.unit();
+    const auto hLine = [&](int x0, int x1, int y, QPalette::ColorRole role) { pp.fillRect(QRect(x0, y, x1 - x0 + 1, u), pal.color(role)); };
+    const auto vLine = [&](int x, int y0, int y1, QPalette::ColorRole role) { pp.fillRect(QRect(x, y0, u, y1 - y0 + 1), pal.color(role)); };
+    const int left = d.left(), right = d.right() - u + 1; // x of the outer columns
+    const int top = d.top(), bottom = d.bottom() - u + 1; // y of the outer rows
+    const bool drawLeft = first || selected || !leftSelected;
+    const bool drawRight = last || selected || !rightSelected;
+
+    pp.fillRect(d, pal.color(QPalette::Window));
+    // Two rings, as in libbeveled: Light/Midlight on top and left, Shadow/Dark on the right and
+    // bottom, the bottom/right colors owning the corners. The side facing the page stays open.
+    if (north) {
+        hLine(left, right - u, top, QPalette::Light);
+        hLine(left + u, right - 2 * u, top + u, QPalette::Midlight);
+        if (drawLeft) {
+            vLine(left, top, d.bottom(), QPalette::Light);
+            vLine(left + u, top + u, d.bottom(), QPalette::Midlight);
+        }
+        if (drawRight) {
+            vLine(right, top, d.bottom(), QPalette::Shadow);
+            vLine(right - u, top + u, d.bottom(), QPalette::Dark);
+        }
+    } else {
+        hLine(left, d.right(), bottom, QPalette::Shadow);
+        hLine(left + u, right - u, bottom - u, QPalette::Dark);
+        if (drawLeft) {
+            vLine(left, top, bottom - u, QPalette::Light);
+            vLine(left + u, top, bottom - 2 * u, QPalette::Midlight);
+        }
+        if (drawRight) {
+            vLine(right, top, bottom, QPalette::Shadow);
+            vLine(right - u, top, bottom - u, QPalette::Dark);
+        }
+    }
+    return true;
 }
 
 } // namespace Beveled

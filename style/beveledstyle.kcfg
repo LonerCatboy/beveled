@@ -45,6 +45,14 @@ SPDX-License-Identifier: CC0-1.0
       <min>0</min>
       <max>12</max>
     </entry>
+    <!-- Tabs: square corners, or the classic tabs with clipped top corners. -->
+    <entry name="TabShape" type="Enum">
+      <choices>
+        <choice name="Square"/>
+        <choice name="Classic"/>
+      </choices>
+      <default>Square</default>
+    </entry>
     <!-- Sunken frames (text fields, lists): Hard shows two pixels of light at bottom/right. -->
     <entry name="SunkenFrame" type="Enum">
       <choices>
