@@ -63,10 +63,17 @@ LIGHTER = "+"  # face with a soft white overlay (active task, like the classic d
 HIGHLIGHT = "h"  # face tinted with the selection color (task asking for attention)
 TEXT = "t"  # text color (tooltip border)
 
+VIEW = "v"  # view background (text fields)
+HOVER_TINT = "1"  # selection color at low opacity (list row under the mouse)
+SELECTED_TINT = "2"  # selected list row
+SELECTED_HOVER_TINT = "3"  # selected list row under the mouse
+
 # Bevels as (outer top/left, outer bottom/right, inner top/left, inner bottom/right).
 WINDOW = (FACE, SHADOW, LIGHT, DARK)
 RAISED = (LIGHT, SHADOW, FACE, DARK)
 PUSHED = (SHADOW, LIGHT, DARK, FACE)
+PRESSED = (SHADOW, SHADOW, DARK, DARK)  # pressed push button
+SUNKEN = (DARK, LIGHT, SHADOW, FACE)  # text fields
 # "Hard" bevels: both rings in the same color, for a crisper, higher-contrast edge.
 RAISED_HARD = (LIGHT, SHADOW, LIGHT, SHADOW)
 PUSHED_HARD = (SHADOW, LIGHT, SHADOW, LIGHT)
@@ -76,6 +83,7 @@ PUSHED_HARD = (SHADOW, LIGHT, SHADOW, LIGHT)
 # inside the panel's own bevel at any panel height.
 TASK_INSET_X = 1  # half the gap between neighboring tasks
 TASK_INSET_Y = 3  # panel bevel (2px) plus a 1px gap
+SCROLLBAR_SIZE = 14  # thickness of popup scroll bars (classic: 16, a little slimmer here)
 
 
 @dataclass
@@ -84,22 +92,27 @@ class Frame:
     grid: list  # pixel map: left/top border + 1px center + right/bottom border
     border_x: int  # width of the corner and left/right elements
     border_y: int  # height of the corner and top/bottom elements
-    margins: dict  # content margins per side
+    margins: dict | None  # content margins per side, or None to write no margin hints
+    hint_prefix: str | None = None  # prefix of the margin hints, when it differs from prefix
 
 
-def bevel_frame(prefix, bevel, margins, center=FACE, inset_x=0, inset_y=0):
-    """A two-ring bevel with a 1px center, optionally surrounded by a transparent inset.
+def ring_frame(prefix, rings, margins, center=FACE, inset_x=0, inset_y=0, open_side=None):
+    """Concentric one-pixel rings, outer first, around a 1px center.
 
-    The rings follow the libbeveled rule: bottom/right colors own the corners. margins are the
-    content margins inside the bevel; the inset is added to them.
+    Each ring is (top/left color, bottom/right color) and, as in libbeveled, the bottom/right
+    color owns the corners. An optional transparent inset surrounds the rings and is added to the
+    content margins. open_side drops the border on one side (tabs open towards their page): the
+    two adjacent sides then run straight to that edge.
     """
-    width, height = 2 * (inset_x + 2) + 1, 2 * (inset_y + 2) + 1
+    depth = len(rings)
+    width, height = 2 * (inset_x + depth) + 1, 2 * (inset_y + depth) + 1
     grid = [[CLEAR] * width for _ in range(height)]
-    rings = [(bevel[0], bevel[1]), (bevel[2], bevel[3])]
-    for depth in range(2):
-        left, top = inset_x + depth, inset_y + depth
+    for y in range(inset_y, height - inset_y):
+        for x in range(inset_x, width - inset_x):
+            grid[y][x] = center
+    for ring, (top_left, bottom_right) in enumerate(rings):
+        left, top = inset_x + ring, inset_y + ring
         right, bottom = width - 1 - left, height - 1 - top
-        top_left, bottom_right = rings[depth]
         for x in range(left, right + 1):
             grid[top][x] = top_left
         for y in range(top, bottom + 1):
@@ -108,9 +121,39 @@ def bevel_frame(prefix, bevel, margins, center=FACE, inset_x=0, inset_y=0):
             grid[bottom][x] = bottom_right
         for y in range(top, bottom + 1):
             grid[y][right] = bottom_right
-    grid[inset_y + 2][inset_x + 2] = center
+
+    if open_side in ("top", "bottom"):
+        rows = range(inset_y, inset_y + depth) if open_side == "top" else range(height - inset_y - depth, height - inset_y)
+        for y in rows:
+            for x in range(inset_x, width - inset_x):
+                grid[y][x] = center
+            for ring, (top_left, bottom_right) in enumerate(rings):
+                grid[y][inset_x + ring] = top_left
+                grid[y][width - 1 - inset_x - ring] = bottom_right
+    elif open_side in ("left", "right"):
+        cols = range(inset_x, inset_x + depth) if open_side == "left" else range(width - inset_x - depth, width - inset_x)
+        for x in cols:
+            for y in range(inset_y, height - inset_y):
+                grid[y][x] = center
+            for ring, (top_left, bottom_right) in enumerate(rings):
+                grid[inset_y + ring][x] = top_left
+                grid[height - 1 - inset_y - ring][x] = bottom_right
+
     insets = {"left": inset_x, "right": inset_x, "top": inset_y, "bottom": inset_y}
-    return Frame(prefix, grid, inset_x + 2, inset_y + 2, {side: insets[side] + margins[side] for side in SIDES})
+    if margins is not None:
+        margins = {side: insets[side] + margins[side] for side in SIDES}
+    return Frame(prefix, grid, inset_x + depth, inset_y + depth, margins)
+
+
+def bevel_frame(prefix, bevel, margins, center=FACE, inset_x=0, inset_y=0, open_side=None):
+    """A classic two-ring bevel: bevel is (outer TL, outer BR, inner TL, inner BR)."""
+    rings = [(bevel[0], bevel[1]), (bevel[2], bevel[3])]
+    return ring_frame(prefix, rings, margins, center, inset_x, inset_y, open_side)
+
+
+def flat_frame(prefix, token, margins):
+    """A flat fill with a 1px border of the same color."""
+    return ring_frame(prefix, [(token, token)], margins, token)
 
 
 def uniform(margin):
@@ -118,8 +161,7 @@ def uniform(margin):
 
 
 def tooltip_frame():
-    grid = [[TEXT] * 3, [TEXT, FACE, TEXT], [TEXT] * 3]
-    return Frame("", grid, 1, 1, uniform(3))
+    return ring_frame("", [(TEXT, TEXT)], uniform(3))
 
 
 def window_frame(bevel=WINDOW, margins=4):
@@ -141,6 +183,66 @@ def task_frames():
     return frames
 
 
+# The frames below are used inside popups (application launcher, system tray, calendar, ...).
+# Their content margins follow the default style, so layouts keep their usual sizes.
+
+
+def viewitem_frames():
+    # Highlighted list rows: flat, square tints of the selection color.
+    return [
+        flat_frame("hover", HOVER_TINT, uniform(4)),
+        flat_frame("selected", SELECTED_TINT, uniform(4)),
+        flat_frame("selected+hover", SELECTED_HOVER_TINT, uniform(4)),
+    ]
+
+
+def lineedit_frames():
+    # Text fields: classic sunken field on the view background.
+    return [bevel_frame("base", SUNKEN, uniform(6), VIEW)]
+
+
+def button_frames():
+    return [
+        bevel_frame("normal", RAISED, uniform(6)),
+        bevel_frame("pressed", PRESSED, {"top": 7, "left": 7, "bottom": 5, "right": 5}),
+        # Flat tool buttons: a thin raised edge on hover, a thin sunken edge when pressed.
+        ring_frame("toolbutton-hover", [(LIGHT, DARK)], uniform(4), CLEAR),
+        ring_frame("toolbutton-pressed", [(DARK, LIGHT)], {"top": 5, "left": 5, "bottom": 3, "right": 3}, CLEAR),
+    ]
+
+
+def tabbar_frames():
+    # The active tab is raised and open towards its page; inactive tabs are not drawn.
+    margins = {"left": 6, "right": 6, "top": 10, "bottom": 10}
+    sideways = {"left": 8, "right": 4, "top": 6, "bottom": 6}
+    return [
+        bevel_frame("north-active-tab", RAISED, margins, open_side="bottom"),
+        bevel_frame("south-active-tab", RAISED, margins, open_side="top"),
+        bevel_frame("west-active-tab", RAISED, {**sideways, "left": 4, "right": 8}, open_side="right"),
+        bevel_frame("east-active-tab", RAISED, sideways, open_side="left"),
+    ]
+
+
+def plasmoidheading_frames():
+    # Popup header and footer: the face with an etched line (Dark over Light) towards the
+    # content. Both share the unprefixed margin hints, written once with the header.
+    face_rows = [[FACE] * 5 for _ in range(3)]
+    etched_line = [[DARK] * 5, [LIGHT] * 5]
+    header = Frame("header", face_rows + etched_line, 2, 2, uniform(6), hint_prefix="")
+    footer = Frame("footer", etched_line + face_rows, 2, 2, None)
+    return [header, footer]
+
+
+def scrollbar_frames():
+    # Classic scroll bar: a light track and a raised slider, no arrows (Plasma has none).
+    return [
+        flat_frame("background-vertical", LIGHTER, None),
+        flat_frame("background-horizontal", LIGHTER, None),
+        bevel_frame("slider", RAISED, None),
+        bevel_frame("mouseover-slider", RAISED, None),
+    ]
+
+
 def fills(token, variant):
     """SVG fills for a pixel token, bottom layer first: (class, fill, opacity)."""
     face = ("ColorScheme-Background", "currentColor", 1.0)
@@ -152,6 +254,10 @@ def fills(token, variant):
         LIGHTER: [face, (None, "#ffffff", variant.light_alpha * 0.5)],
         HIGHLIGHT: [face, ("ColorScheme-Highlight", "currentColor", 0.5)],
         TEXT: [("ColorScheme-Text", "currentColor", 1.0)],
+        VIEW: [("ColorScheme-ViewBackground", "currentColor", 1.0)],
+        HOVER_TINT: [("ColorScheme-Highlight", "currentColor", 0.25)],
+        SELECTED_TINT: [("ColorScheme-Highlight", "currentColor", 0.45)],
+        SELECTED_HOVER_TINT: [("ColorScheme-Highlight", "currentColor", 0.55)],
         CLEAR: [],
     }[token]
 
@@ -172,7 +278,12 @@ def element_name(frame, name):
     return f"{frame.prefix}-{name}" if frame.prefix else name
 
 
-def svg_document(frames, variant):
+def hint_name(frame, side):
+    prefix = frame.prefix if frame.hint_prefix is None else frame.hint_prefix
+    return f"{prefix}-hint-{side}-margin" if prefix else f"hint-{side}-margin"
+
+
+def svg_document(frames, variant, extra_hints=()):
     """Lays the frames out side by side and writes every part as merged pixel runs."""
     out = [
         ARTWORK_LICENSE_XML,
@@ -180,7 +291,8 @@ def svg_document(frames, variant):
         '<style id="current-color-scheme" type="text/css">'
         ".ColorScheme-Background { color:#d4d0c8; } "
         ".ColorScheme-Text { color:#000000; } "
-        ".ColorScheme-Highlight { color:#0a246a; }"
+        ".ColorScheme-Highlight { color:#0a246a; } "
+        ".ColorScheme-ViewBackground { color:#ffffff; }"
         "</style>",
     ]
     x0 = 0
@@ -205,12 +317,15 @@ def svg_document(frames, variant):
             out.append("</g>")
         # Margin hints: rects whose width (left/right) or height (top/bottom) is the margin.
         hy = height + 1
-        for i, side in enumerate(SIDES):
+        for i, side in enumerate(SIDES if frame.margins else []):
             m = max(frame.margins[side], 0)
             w, h = (m, 1) if side in ("left", "right") else (1, m)
             if m > 0:
-                out.append(f'<rect id="{element_name(frame, "hint-" + side + "-margin")}" x="{x0 + i * 6}" y="{hy}" width="{w}" height="{h}" fill="#f0f"/>')
+                out.append(f'<rect id="{hint_name(frame, side)}" x="{x0 + i * 6}" y="{hy}" width="{w}" height="{h}" fill="#f0f"/>')
         x0 += max(width, 24) + 4
+    # Standalone hints (e.g. the scroll bar thickness): sizes read by Plasma, never drawn.
+    for i, (hint, w, h) in enumerate(extra_hints):
+        out.append(f'<rect id="{hint}" x="{x0 + i * 20}" y="0" width="{w}" height="{h}" fill="#f0f"/>')
     out.append("</svg>")
     return "\n".join(out) + "\n"
 
@@ -221,6 +336,15 @@ FILES = {
     "dialogs/background": lambda: [window_frame()],
     "widgets/tooltip": lambda: [tooltip_frame()],
     "widgets/tasks": task_frames,
+    "widgets/viewitem": viewitem_frames,
+    "widgets/lineedit": lineedit_frames,
+    "widgets/button": button_frames,
+    "widgets/tabbar": tabbar_frames,
+    "widgets/plasmoidheading": plasmoidheading_frames,
+    "widgets/scrollbar": scrollbar_frames,
+}
+EXTRA_HINTS = {
+    "widgets/scrollbar": [("hint-scrollbar-size", SCROLLBAR_SIZE, SCROLLBAR_SIZE)],
 }
 # Plasma switches the panel, popups and tooltips to these folders depending on the opacity mode;
 # without copies there it would fall back to the default style.
@@ -244,7 +368,7 @@ enabled=false
 def write_theme(root, variant):
     theme = root / variant.theme_id
     for name, build in FILES.items():
-        svg = svg_document(build(), variant).encode()
+        svg = svg_document(build(), variant, EXTRA_HINTS.get(name, ())).encode()
         folders = MODE_FOLDERS if name in MODE_FILES else [""]
         for folder in folders:
             path = theme / f"{folder}{name}.svgz"
@@ -276,10 +400,13 @@ def check(theme):
             for part in PARTS:
                 if element_name(frame, part) not in ids:
                     errors.append(f"{name}: missing {element_name(frame, part)}")
-            for side in SIDES:
-                hint = element_name(frame, f"hint-{side}-margin")
+            for side in SIDES if frame.margins else []:
+                hint = hint_name(frame, side)
                 if frame.margins[side] > 0 and hint not in ids:
                     errors.append(f"{name}: missing {hint}")
+        all_ids = [e.get("id") for e in root.iter() if e.get("id")]
+        for duplicate in {i for i in all_ids if all_ids.count(i) > 1}:
+            errors.append(f"{name}: duplicate id {duplicate}")
         for rect in root.iter("{http://www.w3.org/2000/svg}rect"):
             for attr in ("x", "y", "width", "height"):
                 value = float(rect.get(attr))
