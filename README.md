@@ -70,7 +70,8 @@ For applications, choose **Beveled** in Application Style. It builds on Qt's own
 and changes button padding, layout margins and spacing, sunken frames and the 3D shades. Its
 options are behind the Configure button next to it and apply to applications started afterwards.
 
-The decoration options (title bar, bevels, shade depth, button hover and padding, shadows)
+The decoration options (title bar, bevels, shade depth, button hover and padding, shadows,
+opacity with blur, glossy title bar)
 are behind the edit button of Beveled in Window Decorations, and are stored in
 `~/.config/beveledrc`.
 

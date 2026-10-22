@@ -61,6 +61,9 @@ private Q_SLOTS:
         QCOMPARE(child<QComboBox>("kcfg_ButtonBevel")->currentIndex(), 0);
         QVERIFY(!child<QCheckBox>("kcfg_AccentTitleBar")->isChecked());
         QVERIFY(!child<QCheckBox>("kcfg_TintInactiveTitle")->isChecked());
+        QVERIFY(!child<QCheckBox>("kcfg_GlossyTitleBar")->isChecked());
+        QCOMPARE(child<QSlider>("kcfg_DecorationOpacity")->value(), 100);
+        QCOMPARE(child<QSlider>("kcfg_DecorationOpacity")->minimum(), 30);
         QCOMPARE(child<QComboBox>("kcfg_FrameBevel")->currentIndex(), 0);
         QCOMPARE(child<QComboBox>("kcfg_ButtonHover")->currentIndex(), 0);
         QCOMPARE(child<QComboBox>("kcfg_ShadowStyle")->currentIndex(), 1);

@@ -91,6 +91,8 @@ DecorationKcm::DecorationKcm(QObject *parent, const KPluginMetaData &data)
     addCheck(layout, QStringLiteral("Tint inactive title bars with the active title color"), QStringLiteral("TintInactiveTitle"));
     addChoice(layout, QStringLiteral("Title text weight:"), QStringLiteral("TitleWeight"),
         {QStringLiteral("Normal"), QStringLiteral("Medium"), QStringLiteral("Semi-bold"), QStringLiteral("Bold")});
+    addCheck(layout, QStringLiteral("Glossy title bar"), QStringLiteral("GlossyTitleBar"));
+    addSlider(layout, QStringLiteral("Title bar and frame opacity:"), m_config->decorationOpacityItem(), 10, QStringLiteral("%"));
     addChoice(layout, QStringLiteral("Window frame:"), QStringLiteral("FrameBevel"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
     addSlider(layout, QStringLiteral("Bevel shade depth:"), m_config->shadeDepthItem(), 10, QStringLiteral("%"));
 

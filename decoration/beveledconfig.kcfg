@@ -49,6 +49,16 @@ SPDX-License-Identifier: CC0-1.0
       </choices>
       <default>Normal</default>
     </entry>
+    <!-- Opacity of the frame and title bar, in percent; below 100 KWin blurs what is behind. -->
+    <entry name="DecorationOpacity" type="Int">
+      <default>100</default>
+      <min>30</min>
+      <max>100</max>
+    </entry>
+    <!-- Glass-like reflection over the title bar. -->
+    <entry name="GlossyTitleBar" type="Bool">
+      <default>false</default>
+    </entry>
     <entry name="FrameBevel" type="Enum">
       <choices>
         <choice name="Soft"/>

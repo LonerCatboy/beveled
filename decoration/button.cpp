@@ -13,7 +13,9 @@
 #include <KDecoration3/DecoratedWindow>
 
 #include <QIcon>
+
 #include <QPainter>
+#include <cmath>
 
 namespace Beveled {
 
@@ -89,7 +91,9 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
     // row. Toggled buttons do not sink: their state can change without a hover or press event,
     // which is when the row below gets repainted.
     const bool nudged = hover == DecorationConfig::EnumButtonHover::Nudge && (isHovered() || isPressed());
-    const qreal deviceScale = painter->deviceTransform().m22();
+    // Logical y always points down on screen, even on surfaces painted upside down (negative
+    // scale), so the sign of the device scale must not leak into the offset.
+    const qreal deviceScale = std::abs(painter->deviceTransform().m22());
     painter->save();
     if (nudged && deviceScale > 0) {
         painter->translate(0, 1.0 / deviceScale);

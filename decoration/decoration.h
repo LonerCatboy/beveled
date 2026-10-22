@@ -45,6 +45,8 @@ private:
     QRect titleRect() const;
 
     void updateLayout();
+    bool translucent() const;
+    void updateTranslucency();
     void recreateButtons();
     void layoutButtons();
     static QList<Button *> visibleButtons(const QList<Button *> &buttons);

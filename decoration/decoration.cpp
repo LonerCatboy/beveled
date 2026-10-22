@@ -199,7 +199,6 @@ bool Decoration::init()
     });
     connect(w, &KDecoration3::DecoratedWindow::iconChanged, this, [this] { update(); });
 
-    setOpaque(true);
     updateShadow();
     recreateButtons();
     return true;
@@ -266,7 +265,26 @@ void Decoration::updateLayout()
 
     setTitleBar(titleRect());
     layoutButtons();
+    updateTranslucency();
     update();
+}
+
+bool Decoration::translucent() const
+{
+    return m_config->decorationOpacity() < 100;
+}
+
+// A translucent decoration is not opaque for KWin, and asks for the blur effect behind the frame
+// and title bar (the client area keeps its own look).
+void Decoration::updateTranslucency()
+{
+    setOpaque(!translucent());
+    if (translucent()) {
+        const QRect full = rect().toAlignedRect();
+        setBlurRegion(QRegion(full).subtracted(full.marginsRemoved(borders().toMargins())));
+    } else {
+        setBlurRegion(QRegion());
+    }
 }
 
 void Decoration::recreateButtons()
@@ -413,31 +431,53 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
     const QRect full = rect().toAlignedRect();
     const QRect client = full.marginsRemoved(borders().toMargins());
 
+    // With a translucent decoration, the frame and title bar are painted with the Source
+    // composition mode: each pixel is replaced (color and alpha), so overlapping fills such as the
+    // bevel over the face do not add up to a more opaque result. KWin blurs what is behind.
+    const qreal opacity = translucent() ? m_config->decorationOpacity() / 100.0 : 1.0;
+    const auto seeThrough = [opacity](QColor color) {
+        color.setAlphaF(color.alphaF() * opacity);
+        return color;
+    };
+    QPalette framePalette = pal;
+    for (const QPalette::ColorRole role : {QPalette::Button, QPalette::Light, QPalette::Midlight, QPalette::Dark, QPalette::Shadow}) {
+        framePalette.setColor(role, seeThrough(pal.color(role)));
+    }
+    painter->save();
+    if (opacity < 1.0) {
+        painter->setCompositionMode(QPainter::CompositionMode_Source);
+    }
+
     // Frame, title separator and everything else outside the client area.
-    const QColor face = pal.color(QPalette::Button);
+    const QColor face = framePalette.color(QPalette::Button);
     fillRect(painter, QRect(full.left(), full.top(), full.width(), client.top() - full.top()), face);
     fillRect(painter, QRect(full.left(), client.top(), client.left() - full.left(), client.height()), face);
     fillRect(painter, QRect(client.right() + 1, client.top(), full.right() - client.right(), client.height()), face);
     fillRect(painter, QRect(full.left(), client.bottom() + 1, full.width(), full.bottom() - client.bottom()), face);
     if (hasFrame()) {
         const bool hard = m_config->frameBevel() == DecorationConfig::EnumFrameBevel::Hard;
-        drawBevel(painter, full, hard ? BevelStyle::RaisedHard : BevelStyle::Window, pal);
+        drawBevel(painter, full, hard ? BevelStyle::RaisedHard : BevelStyle::Window, framePalette);
     }
 
     // Title bar: solid, or a horizontal gradient from the title color to the blend color.
     const QRect title = titleRect();
     const TitleColors colors = titleColors(w->isActive());
     if (m_config->titleBarStyle() == DecorationConfig::EnumTitleBarStyle::Solid) {
-        fillRect(painter, title, colors.background);
+        fillRect(painter, title, seeThrough(colors.background));
     } else {
         PixelPainter pp(painter);
         const QRect device = pp.toDevice(title);
         if (device.isValid()) {
             QLinearGradient gradient(device.topLeft(), device.topRight());
-            gradient.setColorAt(0, colors.background);
-            gradient.setColorAt(1, colors.blend);
+            gradient.setColorAt(0, seeThrough(colors.background));
+            gradient.setColorAt(1, seeThrough(colors.blend));
             painter->fillRect(device, gradient);
         }
+    }
+    painter->restore();
+
+    if (m_config->glossyTitleBar()) {
+        drawGloss(painter, title, pal.color(QPalette::Light));
     }
 
     // Caption text between the left and right buttons.
