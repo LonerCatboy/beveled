@@ -9,5 +9,5 @@ ecm_add_test(lookandfeeltest.cpp
     TEST_NAME lookandfeeltest
     LINK_LIBRARIES Qt6::Test Qt6::Qml Qt6::Quick
 )
-target_compile_definitions(lookandfeeltest PRIVATE PACKAGE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../beveled.desktop")
+target_compile_definitions(lookandfeeltest PRIVATE PACKAGE_DIR="${CMAKE_CURRENT_SOURCE_DIR}/../common")
 set_tests_properties(lookandfeeltest PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen;QT_QUICK_BACKEND=software")

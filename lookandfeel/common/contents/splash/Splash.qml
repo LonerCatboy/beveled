@@ -40,10 +40,10 @@ Rectangle {
         // corners, as everywhere in Beveled).
         Item {
             id: track
-            readonly property int blockSize: Math.round(Kirigami.Units.gridUnit * 0.75)
+            readonly property int blockSize: Math.round(Kirigami.Units.gridUnit * 1.1)
             readonly property int gap: 2
             readonly property int bevel: 2
-            readonly property int innerWidth: 20 * (blockSize + gap)
+            readonly property int innerWidth: 10 * (blockSize + gap)
 
             width: innerWidth + 2 * bevel
             height: blockSize + 2 * gap + 2 * bevel
@@ -75,6 +75,8 @@ Rectangle {
                 clip: true
 
                 property int offset: -3 * (track.blockSize + track.gap)
+                // Whole pixels per frame, so the blocks never land between pixels.
+                readonly property int step: 3
 
                 Repeater {
                     model: 3
@@ -92,7 +94,7 @@ Rectangle {
                     // No motion when the user disabled animations.
                     running: Kirigami.Units.longDuration > 1
                     onTriggered: {
-                        lane.offset += 2;
+                        lane.offset += lane.step;
                         if (lane.offset > lane.width) {
                             lane.offset = -3 * (track.blockSize + track.gap);
                         }

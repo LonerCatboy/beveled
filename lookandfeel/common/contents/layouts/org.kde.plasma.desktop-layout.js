@@ -3,11 +3,11 @@
 
 // Desktop layout of the Beveled global theme, used only when "Use desktop layout from theme" is
 // checked in the Global Theme page: a classic taskbar at the bottom, docked (not floating),
-// 28px high, with window titles in the task buttons.
+// 32px high, with window titles in the task buttons.
 
 var panel = new Panel;
 panel.location = "bottom";
-panel.height = 28;
+panel.height = 32;
 panel.floating = false;
 
 panel.addWidget("org.kde.plasma.kickoff");

@@ -43,11 +43,13 @@ private Q_SLOTS:
         root->setProperty("stage", 2);
         QTRY_VERIFY(lane->property("offset").toInt() != start);
         // Whole-pixel steps keep the blocks crisp.
-        QCOMPARE((lane->property("offset").toInt() - start) % 2, 0);
+        const int step = lane->property("step").toInt();
+        QVERIFY(step >= 1);
+        QCOMPARE((lane->property("offset").toInt() - start) % step, 0);
     }
 
     // The layout script runs against a stand-in for Plasma's scripting API and builds a docked
-    // 28px bottom panel with the classic set of widgets.
+    // 32px bottom panel with the classic set of widgets.
     void layoutScript()
     {
         QFile file(packageFile("contents/layouts/org.kde.plasma.desktop-layout.js"));
@@ -67,7 +69,7 @@ private Q_SLOTS:
 
         const QJSValue panel = engine.globalObject().property(QStringLiteral("panels")).property(0);
         QCOMPARE(panel.property(QStringLiteral("location")).toString(), QStringLiteral("bottom"));
-        QCOMPARE(panel.property(QStringLiteral("height")).toInt(), 28);
+        QCOMPARE(panel.property(QStringLiteral("height")).toInt(), 32);
         QCOMPARE(panel.property(QStringLiteral("floating")).toBool(), false);
         const QStringList widgets = panel.property(QStringLiteral("widgets")).toVariant().toStringList();
         QCOMPARE(widgets.first(), QStringLiteral("org.kde.plasma.kickoff"));

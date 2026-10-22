@@ -1,0 +1,16 @@
+{
+    "KPackageStructure": "Plasma/LookAndFeel",
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "LonerCatboy"
+            }
+        ],
+        "Description": "Classic beveled desktop in dark colors: colors, window decoration, application and Plasma styles, splash screen",
+        "Id": "beveled-dark.desktop",
+        "License": "GPL-2.0-or-later",
+        "Name": "Beveled Dark",
+        "Version": "0.1"
+    },
+    "X-Plasma-APIVersion": "2"
+}

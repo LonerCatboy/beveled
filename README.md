@@ -61,8 +61,8 @@ sudo cmake --install build-vm
 ```
 
 The quickest way to try everything: System Settings → Colors & Themes → Global Theme →
-**Beveled**. It sets the color scheme, window decoration, application and Plasma styles and the
-splash screen; tick "Use desktop layout from theme" there for a classic 28px taskbar (this
+**Beveled** or **Beveled Dark**. It sets the color scheme, window decoration, application and Plasma styles and the
+splash screen; tick "Use desktop layout from theme" there for a classic 32px taskbar (this
 replaces your current panels).
 
 Each part can also be chosen on its own: **Beveled** in Window Decorations, and **Beveled
