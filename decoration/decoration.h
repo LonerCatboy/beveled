@@ -48,6 +48,14 @@ private:
     void recreateButtons();
     void layoutButtons();
     static QList<Button *> visibleButtons(const QList<Button *> &buttons);
+    struct TitleColors
+    {
+        QColor background;
+        QColor blend; // gradient end
+        QColor foreground;
+    };
+    TitleColors titleColors(bool active) const;
+
     void readTitleBlend();
     void updateShadow();
 

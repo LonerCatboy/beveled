@@ -36,6 +36,10 @@ SPDX-License-Identifier: CC0-1.0
     <entry name="AccentTitleBar" type="Bool">
       <default>false</default>
     </entry>
+    <!-- Mix a little of the active title colors (accent or scheme) into inactive title bars. -->
+    <entry name="TintInactiveTitle" type="Bool">
+      <default>false</default>
+    </entry>
     <entry name="BoldTitle" type="Bool">
       <default>false</default>
     </entry>

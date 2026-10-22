@@ -66,6 +66,8 @@ int padding(KDecoration3::BorderSize size)
 
 // With the accent color option, the gradient fades from the accent towards the Light color.
 constexpr qreal AccentBlendAmount = 0.6;
+// With the inactive tint option, share of the active title colors mixed into inactive title bars.
+constexpr qreal InactiveTintAmount = 0.2;
 
 // Shadow opacity (0-255), applied to the palette's Shadow color.
 constexpr int SoftShadowAlpha = 140;
@@ -331,6 +333,34 @@ void Decoration::updateShadow()
     setShadow(sharedShadow(style, m_config->shadowDistance(), color));
 }
 
+Decoration::TitleColors Decoration::titleColors(bool active) const
+{
+    KDecoration3::DecoratedWindow *w = window();
+    const KDecoration3::ColorGroup group = active ? KDecoration3::ColorGroup::Active : KDecoration3::ColorGroup::Inactive;
+    TitleColors colors {
+        w->color(group, KDecoration3::ColorRole::TitleBar),
+        active ? m_activeBlend : m_inactiveBlend,
+        w->color(group, KDecoration3::ColorRole::Foreground),
+    };
+    if (!colors.blend.isValid()) {
+        colors.blend = colors.background;
+    }
+
+    if (active && m_config->accentTitleBar()) {
+        // KDE writes the accent color into the selection colors, so Highlight is the accent.
+        const QPalette pal = palette();
+        colors.background = pal.color(QPalette::Active, QPalette::Highlight);
+        colors.blend = mix(colors.background, pal.color(QPalette::Active, QPalette::Light), AccentBlendAmount);
+        colors.foreground = pal.color(QPalette::Active, QPalette::HighlightedText);
+    } else if (!active && m_config->tintInactiveTitle()) {
+        // A hint of the active title colors (accent or scheme), keeping the inactive text color.
+        const TitleColors activeColors = titleColors(true);
+        colors.background = mix(colors.background, activeColors.background, InactiveTintAmount);
+        colors.blend = mix(colors.blend, activeColors.blend, InactiveTintAmount);
+    }
+    return colors;
+}
+
 void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
 {
     KDecoration3::DecoratedWindow *w = window();
@@ -351,16 +381,10 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
 
     // Title bar: solid, or a horizontal gradient from the title color to the blend color.
     const QRect title = titleRect();
-    const KDecoration3::ColorGroup group = w->isActive() ? KDecoration3::ColorGroup::Active : KDecoration3::ColorGroup::Inactive;
-    QColor background = w->color(group, KDecoration3::ColorRole::TitleBar);
-    QColor blend = w->isActive() ? m_activeBlend : m_inactiveBlend;
-    QColor foreground = w->color(group, KDecoration3::ColorRole::Foreground);
-    if (w->isActive() && m_config->accentTitleBar()) {
-        // KDE writes the accent color into the selection colors, so Highlight is the accent.
-        background = pal.color(QPalette::Active, QPalette::Highlight);
-        blend = mix(background, pal.color(QPalette::Active, QPalette::Light), AccentBlendAmount);
-        foreground = pal.color(QPalette::Active, QPalette::HighlightedText);
-    }
+    const TitleColors colors = titleColors(w->isActive());
+    const QColor &background = colors.background;
+    const QColor &blend = colors.blend;
+    const QColor &foreground = colors.foreground;
     if (m_config->titleBarStyle() == DecorationConfig::EnumTitleBarStyle::Solid || !blend.isValid()) {
         fillRect(painter, title, background);
     } else {

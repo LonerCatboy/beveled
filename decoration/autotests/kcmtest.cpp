@@ -60,6 +60,7 @@ private Q_SLOTS:
         QCOMPARE(child<QComboBox>("kcfg_TitleBarStyle")->currentIndex(), 0);
         QCOMPARE(child<QComboBox>("kcfg_ButtonBevel")->currentIndex(), 0);
         QVERIFY(!child<QCheckBox>("kcfg_AccentTitleBar")->isChecked());
+        QVERIFY(!child<QCheckBox>("kcfg_TintInactiveTitle")->isChecked());
         QCOMPARE(child<QComboBox>("kcfg_FrameBevel")->currentIndex(), 0);
         QCOMPARE(child<QComboBox>("kcfg_ButtonHover")->currentIndex(), 0);
         QCOMPARE(child<QComboBox>("kcfg_ShadowStyle")->currentIndex(), 1);

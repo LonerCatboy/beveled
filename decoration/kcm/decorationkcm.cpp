@@ -72,6 +72,7 @@ QList<Preset> presets()
         return QList<std::pair<QString, int>> {
             {QStringLiteral("TitleBarStyle"), titleBarStyle},
             {QStringLiteral("AccentTitleBar"), 0},
+            {QStringLiteral("TintInactiveTitle"), 0},
             {QStringLiteral("BoldTitle"), 1},
             {QStringLiteral("FrameBevel"), 0},
             {QStringLiteral("ShadeDepth"), 100},
@@ -89,6 +90,7 @@ QList<Preset> presets()
             {
                 {QStringLiteral("TitleBarStyle"), 0},
                 {QStringLiteral("AccentTitleBar"), 1},
+                {QStringLiteral("TintInactiveTitle"), 1},
                 {QStringLiteral("BoldTitle"), 0},
                 {QStringLiteral("FrameBevel"), 0},
                 {QStringLiteral("ShadeDepth"), 80},
@@ -148,6 +150,7 @@ DecorationKcm::DecorationKcm(QObject *parent, const KPluginMetaData &data)
 
     addChoice(layout, QStringLiteral("Title bar:"), QStringLiteral("TitleBarStyle"), {QStringLiteral("Gradient"), QStringLiteral("Solid color")});
     addCheck(layout, QStringLiteral("Use the accent color for the active title bar"), QStringLiteral("AccentTitleBar"));
+    addCheck(layout, QStringLiteral("Tint inactive title bars with the active title color"), QStringLiteral("TintInactiveTitle"));
     addCheck(layout, QStringLiteral("Bold title text"), QStringLiteral("BoldTitle"));
     addChoice(layout, QStringLiteral("Window frame:"), QStringLiteral("FrameBevel"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
     addSlider(layout, QStringLiteral("Bevel shade depth:"), m_config->shadeDepthItem(), 10, QStringLiteral("%"));
