@@ -5,13 +5,17 @@
 
 #include "pixelpainter.h"
 
-#include <QLinearGradient>
 #include <QPainter>
 #include <QPalette>
 
 namespace Beveled {
 
 namespace {
+
+// Strength of the glass sheen layers (0-255).
+constexpr int GlossVeilAlpha = 36;
+constexpr int GlossTopEdgeAlpha = 130;
+constexpr int GlossBottomEdgeAlpha = 60;
 
 // Draws one ring of thickness t inside deviceRect. Top/left stop short of the bottom/right
 // edges, which run the full length and therefore own the corners.
@@ -74,7 +78,8 @@ void drawGloss(QPainter *painter, const QRect &logicalRect, const QColor &highli
 {
     PixelPainter pp(painter);
     const QRect r = pp.toDevice(logicalRect);
-    if (r.height() < 2) {
+    const int u = pp.unit();
+    if (r.height() < 3 * u) {
         return;
     }
     const auto withAlpha = [&highlight](int alpha) {
@@ -82,16 +87,9 @@ void drawGloss(QPainter *painter, const QRect &logicalRect, const QColor &highli
         c.setAlpha(alpha);
         return c;
     };
-    // Gradients in device coordinates, split on a whole device row.
-    const int split = r.top() + r.height() / 2;
-    QLinearGradient reflection(QPointF(0, r.top()), QPointF(0, split));
-    reflection.setColorAt(0, withAlpha(150));
-    reflection.setColorAt(1, withAlpha(50));
-    painter->fillRect(QRect(r.left(), r.top(), r.width(), split - r.top()), reflection);
-    QLinearGradient glow(QPointF(0, split), QPointF(0, r.bottom() + 1));
-    glow.setColorAt(0, withAlpha(0));
-    glow.setColorAt(1, withAlpha(40));
-    painter->fillRect(QRect(r.left(), split, r.width(), r.bottom() + 1 - split), glow);
+    pp.fillRect(r, withAlpha(GlossVeilAlpha));
+    pp.fillRect(QRect(r.left(), r.top(), r.width(), u), withAlpha(GlossTopEdgeAlpha));
+    pp.fillRect(QRect(r.left(), r.bottom() - u + 1, r.width(), u), withAlpha(GlossBottomEdgeAlpha));
 }
 
 void drawEtchedLine(QPainter *painter, const QRect &logicalRect, Qt::Orientation orientation, const QPalette &palette, int ringWidth)

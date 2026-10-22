@@ -56,9 +56,10 @@ constexpr int bevelThickness(int ringWidth = 1)
 // Fills logicalRect with edges rounded to the device pixel grid, so fills always meet bevels.
 void fillRect(QPainter *painter, const QRect &logicalRect, const QColor &color);
 
-// Glass-like gloss over logicalRect (e.g. a title bar), blended over what is already there: a
-// bright reflection fading down to the middle, a sharp edge, then a faint glow at the bottom.
-// highlight is the reflection color (the palette's Light); only its hue is used.
+// Flat glass sheen over logicalRect (e.g. a title bar), blended over what is already there: an
+// even veil of highlight, a bright one-unit line along the top edge and a fainter one along the
+// bottom edge. No curves or gradients, so it stays on the pixel grid like the bevels.
+// highlight is the sheen color (the palette's Light); its alpha is ignored.
 void drawGloss(QPainter *painter, const QRect &logicalRect, const QColor &highlight);
 
 // Horizontal etched separator (Dark line above a Light line) at the vertical center of

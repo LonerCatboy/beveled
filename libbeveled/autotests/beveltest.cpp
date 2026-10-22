@@ -147,8 +147,8 @@ private Q_SLOTS:
             });
     }
 
-    // The gloss brightens the top half more than the bottom, with a sharp edge in the middle,
-    // and stays inside its rectangle.
+    // The gloss is flat: an even veil, a bright top edge and a fainter bottom edge, one unit
+    // thick at every scale, and nothing outside its rectangle.
     void gloss()
     {
         for (const int scale : {1, 2}) {
@@ -156,12 +156,19 @@ private Q_SLOTS:
                 painter->fillRect(QRect(0, 0, 10, 20), QColor(0, 0, 0));
                 drawGloss(painter, QRect(0, 2, 10, 16), QColor(255, 255, 255));
             });
-            const auto level = [&](int logicalY) { return qRed(image.pixel(5 * scale, logicalY * scale)); };
-            QCOMPARE(level(0), 0);
-            QCOMPARE(level(19), 0);
-            QVERIFY(level(2) > level(9)); // reflection fades towards the middle
-            QVERIFY(level(9) > level(10)); // sharp edge
-            QVERIFY(level(17) > level(10)); // glow at the bottom
+            const auto level = [&](int deviceY) { return qRed(image.pixel(5 * scale, deviceY)); };
+            QCOMPARE(level(2 * scale - 1), 0); // above
+            QCOMPARE(level(18 * scale), 0); // below
+            const int veil = level(10 * scale);
+            QVERIFY(veil > 0);
+            QCOMPARE(level(4 * scale), veil); // flat: same everywhere inside
+            QCOMPARE(level(16 * scale), veil);
+            for (int y = 2 * scale; y < 3 * scale; ++y) {
+                QVERIFY(level(y) > veil); // top edge, one unit thick
+            }
+            QCOMPARE(level(3 * scale), veil);
+            const int bottomEdge = level(18 * scale - 1);
+            QVERIFY(bottomEdge > veil && bottomEdge < level(2 * scale));
         }
     }
 
