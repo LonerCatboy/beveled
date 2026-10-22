@@ -274,11 +274,13 @@ bool Decoration::translucent() const
     return m_config->decorationOpacity() < 100;
 }
 
-// A translucent decoration is not opaque for KWin, and asks for the blur effect behind the frame
-// and title bar (the client area keeps its own look).
+// A translucent decoration asks for the blur effect behind the frame and title bar (the client
+// area keeps its own look). The decoration is never declared opaque, even when it is: KWin then
+// skips painting what is below it, and a row along the client edge that neither side repaints
+// shows stale buffer content, flickering with every client update.
 void Decoration::updateTranslucency()
 {
-    setOpaque(!translucent());
+    setOpaque(false);
     if (translucent()) {
         const QRect full = rect().toAlignedRect();
         setBlurRegion(QRegion(full).subtracted(full.marginsRemoved(borders().toMargins())));
