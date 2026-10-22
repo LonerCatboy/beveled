@@ -123,6 +123,18 @@ private Q_SLOTS:
             });
     }
 
+    void sunkenHard()
+    {
+        check(QSize(6, 5), 1, [](QPainter *painter, const QPalette &p) { drawBevel(painter, QRect(0, 0, 6, 5), BevelStyle::SunkenHard, p); },
+            {
+                "sssssW",
+                "s###WW",
+                "s#??WW",
+                "sWWWWW",
+                "WWWWWW",
+            });
+    }
+
     void etched()
     {
         check(QSize(6, 5), 1, [](QPainter *painter, const QPalette &p) { drawBevel(painter, QRect(0, 0, 6, 5), BevelStyle::Etched, p); },

@@ -36,6 +36,7 @@ enum class BevelStyle {
     RaisedHard, // high-contrast variant of Raised: both rings Light/Shadow
     PushedHard, // high-contrast variant of Pushed: both rings Shadow/Light
     Sunken, // text fields, list views: Dark/Light, then Shadow/Midlight
+    SunkenHard, // thicker light edge: Dark/Light, then Shadow/Light (2px of Light at bottom/right)
     Etched, // group boxes, toolbar bands: Dark/Light, then Light/Dark
 };
 

@@ -40,6 +40,8 @@ BevelColors bevelColors(BevelStyle style, const QPalette &p)
         return {{p.color(QPalette::Shadow), p.color(QPalette::Light)}, {p.color(QPalette::Shadow), p.color(QPalette::Light)}};
     case BevelStyle::Sunken:
         return {{p.color(QPalette::Dark), p.color(QPalette::Light)}, {p.color(QPalette::Shadow), p.color(QPalette::Midlight)}};
+    case BevelStyle::SunkenHard:
+        return {{p.color(QPalette::Dark), p.color(QPalette::Light)}, {p.color(QPalette::Shadow), p.color(QPalette::Light)}};
     case BevelStyle::Etched:
         return {{p.color(QPalette::Dark), p.color(QPalette::Light)}, {p.color(QPalette::Light), p.color(QPalette::Dark)}};
     }
