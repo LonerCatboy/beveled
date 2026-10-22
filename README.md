@@ -9,7 +9,7 @@ A classic 3D-bevel theme (late-'90s style) for KDE Plasma 6, drawn in code and c
 scale.
 
 > **Status:** early development. The window decoration, color schemes and Plasma styles work;
-> the application style is not written yet.
+> the application style is a first version.
 
 ## Goal
 
@@ -23,7 +23,7 @@ no antialiasing on geometric primitives.
 | Component | Directory | Status |
 |---|---|---|
 | Drawing primitives library | `libbeveled/` | in progress |
-| Application style (QStyle, also QML/Kirigami) | `style/` | planned |
+| Application style (QStyle, also QML/Kirigami) | `style/` | in progress: Qt's Windows style with compact buttons and classic 3D shades |
 | Window decoration (KDecoration3) | `decoration/` | in progress |
 | Color schemes (Classic, Modern, Parchment, Dark) | `colors/` | in progress |
 | Plasma style (panel, task buttons, popups, tooltips) | `plasma/` | in progress |
@@ -65,6 +65,17 @@ Then choose **Beveled** in System Settings → Colors & Themes → Window Decora
 For the panel and popups, choose **Beveled** (light color schemes) or **Beveled Dark** (dark
 color schemes) in Plasma Style. The panel height is a panel setting, not part of the style: right
 click the panel, Enter Edit Mode, and adjust its height (the classic taskbar is about 28 px).
+
+For applications, choose **Beveled** in Application Style. It builds on Qt's own Windows style
+and changes the button padding and the 3D shades; until it has a settings page, its options are
+read from `~/.config/beveledrc`:
+
+```ini
+[Style]
+ButtonPaddingX=6   # 0-12, between a button's bevel and its label
+ButtonPaddingY=1   # 0-6
+ButtonMinWidth=64  # 0-100, for buttons with text
+```
 
 The decoration options (title bar, bevels, shade depth, button hover and padding, shadows)
 are behind the edit button of Beveled in Window Decorations, and are stored in
