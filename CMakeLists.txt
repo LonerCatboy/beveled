@@ -27,6 +27,7 @@ find_package(KDecoration3 6.3 REQUIRED)
 add_subdirectory(libbeveled)
 add_subdirectory(decoration)
 add_subdirectory(colors)
+add_subdirectory(plasma)
 add_subdirectory(tools/palette-dump)
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
