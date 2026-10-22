@@ -22,6 +22,10 @@ public:
 
     void paint(QPainter *painter, const QRectF &repaintArea) override;
 
+private Q_SLOTS:
+    // Repaints the button and the row below it, where a nudged button is drawn.
+    void updateWithNudge();
+
 private:
     Button(KDecoration3::DecorationButtonType type, Decoration *decoration);
 };

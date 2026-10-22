@@ -32,7 +32,8 @@ QColor mix(const QColor &a, const QColor &b, qreal t)
 Button::Button(DecorationButtonType type, Decoration *decoration)
     : KDecoration3::DecorationButton(type, decoration, decoration)
 {
-    connect(this, &KDecoration3::DecorationButton::hoveredChanged, this, [this] { update(); });
+    connect(this, &KDecoration3::DecorationButton::hoveredChanged, this, &Button::updateWithNudge);
+    connect(this, &KDecoration3::DecorationButton::pressedChanged, this, &Button::updateWithNudge);
 }
 
 Button *Button::create(DecorationButtonType type, Decoration *decoration)
@@ -46,6 +47,11 @@ Button *Button::create(DecorationButtonType type, Decoration *decoration)
     default:
         return nullptr;
     }
+}
+
+void Button::updateWithNudge()
+{
+    update(geometry().adjusted(0, 0, 0, 1));
 }
 
 bool Button::isIcon() const
@@ -73,6 +79,14 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
     const auto hover = deco->config().buttonHover();
     const bool hovered = isHovered() && !down;
 
+    // "Slightly pressed" hover: the whole button sinks by one device pixel and stays there while
+    // pressed. There is always room below: the title bar is followed by a separator row.
+    const bool nudged = hover == DecorationConfig::EnumButtonHover::Nudge && (isHovered() || down);
+    painter->save();
+    if (nudged) {
+        painter->translate(0, 1.0 / painter->deviceTransform().m22());
+    }
+
     QColor face = pal.color(QPalette::Button);
     if (hovered && hover == DecorationConfig::EnumButtonHover::Highlight) {
         // A light tint of the selection color, like the hover of KDE's default buttons.
@@ -92,13 +106,8 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
     } else if (type() == DecorationButtonType::Maximize) {
         glyph = deco->window()->isMaximized() ? Glyph::Restore : Glyph::Maximize;
     }
-    GlyphOffset offset = GlyphOffset::None;
-    if (down) {
-        offset = GlyphOffset::Pressed;
-    } else if (hovered && hover == DecorationConfig::EnumButtonHover::Nudge) {
-        offset = GlyphOffset::Nudged;
-    }
-    drawCaptionGlyph(painter, r, glyph, pal, isEnabled(), offset);
+    drawCaptionGlyph(painter, r, glyph, pal, isEnabled(), down ? GlyphOffset::Pressed : GlyphOffset::None);
+    painter->restore();
 }
 
 } // namespace Beveled

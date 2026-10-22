@@ -107,9 +107,7 @@ void drawCaptionGlyph(QPainter *painter, const QRect &logicalButtonRect, Glyph g
 
     const QPoint centering((button.width() - CaptionButtonSize.width() * u) / 2, (button.height() - CaptionButtonSize.height() * u) / 2);
     QPoint origin = button.topLeft() + centering + bmp.offset * u;
-    if (offset == GlyphOffset::Nudged) {
-        origin += QPoint(1, 1);
-    } else if (offset == GlyphOffset::Pressed) {
+    if (offset == GlyphOffset::Pressed) {
         origin += QPoint(u, u);
     }
 

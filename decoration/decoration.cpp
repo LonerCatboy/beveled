@@ -7,6 +7,7 @@
 #include "button.h"
 
 #include <beveled/bevel.h>
+#include <beveled/glyphs.h>
 #include <beveled/pixelpainter.h>
 #include <beveled/shades.h>
 #include <beveled/shadow.h>
@@ -30,9 +31,8 @@ namespace {
 
 // Classic metrics at 100%, in logical pixels.
 constexpr int BevelWidth = bevelThickness(); // the two rings of the window border
-constexpr int MinTitleHeight = 18;
 constexpr int TitleSeparator = 1; // face-colored row between the title bar and the client
-constexpr int ButtonMargin = 2; // around caption buttons inside the title bar
+constexpr int TextMargin = 2; // between the caption text and the right buttons or edge
 constexpr int CloseGap = 2; // extra space on the left of the close button
 constexpr int IconMargin = 2;
 constexpr int TextGap = 4; // between the icon (or left buttons) and the caption text
@@ -173,10 +173,18 @@ int Decoration::frameWidth() const
     return hasFrame() ? BevelWidth + padding(settings()->borderSize()) : 0;
 }
 
+// Caption buttons are 14px tall as in the classic layout, taller for large title fonts, and
+// grow further with the button padding option.
+int Decoration::buttonHeight() const
+{
+    const int fontHeight = int(std::ceil(settings()->fontMetrics().height()));
+    return std::max(CaptionButtonSize.height(), fontHeight - 2) + 2 * m_config->buttonPadding();
+}
+
+// The title bar wraps the buttons with the button margin option (2px in the classic layout).
 int Decoration::titleHeight() const
 {
-    // Button padding grows the caption buttons, and the title bar with them.
-    return std::max(MinTitleHeight, int(std::ceil(settings()->fontMetrics().height())) + 2) + 2 * m_config->buttonPadding();
+    return buttonHeight() + 2 * m_config->buttonMargin();
 }
 
 QRect Decoration::titleRect() const
@@ -226,7 +234,8 @@ void Decoration::recreateButtons()
 void Decoration::layoutButtons()
 {
     const QRect title = titleRect();
-    const int h = title.height() - 2 * ButtonMargin;
+    const int margin = m_config->buttonMargin();
+    const int h = buttonHeight();
     const QSize captionSize(h + 2, h);
     const int iconSize = title.height() - 2;
 
@@ -240,12 +249,15 @@ void Decoration::layoutButtons()
             if (i > 0 && button->type() == KDecoration3::DecorationButtonType::Close) {
                 x += CloseGap;
             }
-            button->setGeometry(QRectF(QPointF(x, title.top() + ButtonMargin), captionSize));
+            if (i == 0) {
+                x = title.left() + margin;
+            }
+            button->setGeometry(QRectF(QPointF(x, title.top() + margin), captionSize));
             x += captionSize.width();
         }
     }
 
-    x = title.right() + 1 - ButtonMargin;
+    x = title.right() + 1 - margin;
     for (int i = m_rightButtons.size() - 1; i >= 0; --i) {
         Button *button = m_rightButtons.at(i);
         const bool beforeClose = i + 1 < m_rightButtons.size() && m_rightButtons.at(i + 1)->type() == KDecoration3::DecorationButtonType::Close;
@@ -258,7 +270,7 @@ void Decoration::layoutButtons()
             x -= IconMargin;
         } else {
             x -= captionSize.width();
-            button->setGeometry(QRectF(QPointF(x, title.top() + ButtonMargin), captionSize));
+            button->setGeometry(QRectF(QPointF(x, title.top() + margin), captionSize));
         }
     }
 }
@@ -321,9 +333,9 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
     for (const Button *button : std::as_const(m_leftButtons)) {
         textLeft = std::max(textLeft, int(button->geometry().right()) + TextGap);
     }
-    int textRight = title.right() - ButtonMargin;
+    int textRight = title.right() - TextMargin;
     for (const Button *button : std::as_const(m_rightButtons)) {
-        textRight = std::min(textRight, int(button->geometry().left()) - ButtonMargin);
+        textRight = std::min(textRight, int(button->geometry().left()) - TextMargin);
     }
     if (textRight > textLeft) {
         const QRect textRect(textLeft, title.top(), textRight - textLeft, title.height());

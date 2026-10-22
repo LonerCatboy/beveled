@@ -20,7 +20,6 @@ enum class Glyph {
 // How far the glyph moves from its resting position.
 enum class GlyphOffset {
     None,
-    Nudged, // one device pixel down and right: a hint of a press, e.g. on hover
     Pressed, // one unit down and right, as on a pressed classic button
 };
 

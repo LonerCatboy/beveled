@@ -63,6 +63,8 @@ private Q_SLOTS:
         QCOMPARE(child<QComboBox>("kcfg_ShadowStyle")->currentIndex(), 1);
         QCOMPARE(child<QSlider>("kcfg_ShadowDistance")->value(), 4);
         QCOMPARE(child<QSlider>("kcfg_ShadeDepth")->value(), 100);
+        QCOMPARE(child<QSlider>("kcfg_ButtonMargin")->value(), 2);
+        QCOMPARE(child<QSlider>("kcfg_ButtonMargin")->minimum(), 0);
         QCOMPARE(child<QSlider>("kcfg_ShadeDepth")->minimum(), 50);
         QCOMPARE(child<QSlider>("kcfg_ShadeDepth")->maximum(), 150);
         auto padding = child<QSlider>("kcfg_ButtonPadding");
@@ -76,6 +78,7 @@ private Q_SLOTS:
         child<QComboBox>("kcfg_TitleBarStyle")->setCurrentIndex(1);
         child<QComboBox>("kcfg_ButtonBevel")->setCurrentIndex(1);
         child<QSlider>("kcfg_ButtonPadding")->setValue(3);
+        child<QSlider>("kcfg_ButtonMargin")->setValue(0);
         child<QComboBox>("kcfg_ButtonHover")->setCurrentIndex(2);
         child<QComboBox>("kcfg_ShadowStyle")->setCurrentIndex(2);
         child<QSlider>("kcfg_ShadeDepth")->setValue(130);
@@ -86,6 +89,7 @@ private Q_SLOTS:
         QCOMPARE(g.readEntry("TitleBarStyle"), QStringLiteral("Solid"));
         QCOMPARE(g.readEntry("ButtonBevel"), QStringLiteral("Hard"));
         QCOMPARE(g.readEntry("ButtonPadding", -1), 3);
+        QCOMPARE(g.readEntry("ButtonMargin", -1), 0);
         QCOMPARE(g.readEntry("ButtonHover"), QStringLiteral("Nudge"));
         QCOMPARE(g.readEntry("ShadowStyle"), QStringLiteral("Solid"));
         QCOMPARE(g.config()->group(QStringLiteral("General")).readEntry("ShadeDepth", -1), 130);

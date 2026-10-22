@@ -71,7 +71,8 @@ DecorationKcm::DecorationKcm(QObject *parent, const KPluginMetaData &data)
     addChoice(layout, QStringLiteral("Button bevel:"), QStringLiteral("ButtonBevel"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
     addChoice(layout, QStringLiteral("Button hover:"), QStringLiteral("ButtonHover"),
         {QStringLiteral("No effect (classic)"), QStringLiteral("Highlight"), QStringLiteral("Slightly pressed")});
-    addSlider(layout, QStringLiteral("Button padding:"), m_config->buttonPaddingItem(), 1, QStringLiteral("px"));
+    addSlider(layout, QStringLiteral("Space around buttons:"), m_config->buttonMarginItem(), 1, QStringLiteral("px"));
+    addSlider(layout, QStringLiteral("Space around symbols:"), m_config->buttonPaddingItem(), 1, QStringLiteral("px"));
 
     addSpacer(layout);
     auto shadow = addChoice(

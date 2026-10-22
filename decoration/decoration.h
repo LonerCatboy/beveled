@@ -39,6 +39,7 @@ public:
 private:
     bool hasFrame() const;
     int frameWidth() const;
+    int buttonHeight() const;
     int titleHeight() const;
     QRect titleRect() const;
 

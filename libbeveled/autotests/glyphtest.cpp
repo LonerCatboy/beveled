@@ -33,8 +33,8 @@ private:
     }
 
 private Q_SLOTS:
-    // Nudged glyphs move by one device pixel, pressed glyphs by one unit (scale pixels).
-    void offsets()
+    // Pressed glyphs move by one unit (scale pixels) down and right.
+    void pressedOffset()
     {
         const QPalette p = TestUtils::testPalette();
         for (const int scale : {1, 2, 3}) {
@@ -46,8 +46,9 @@ private Q_SLOTS:
                 });
             };
             const QImage rest = glyphImage(GlyphOffset::None);
-            for (const auto &[offset, shift] : {std::pair {GlyphOffset::Nudged, 1}, std::pair {GlyphOffset::Pressed, scale}}) {
-                const QImage moved = glyphImage(offset);
+            {
+                const int shift = scale;
+                const QImage moved = glyphImage(GlyphOffset::Pressed);
                 QVERIFY(moved != rest);
                 for (int y = shift; y < rest.height(); ++y) {
                     for (int x = shift; x < rest.width(); ++x) {
