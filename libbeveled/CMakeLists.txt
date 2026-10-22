@@ -6,6 +6,7 @@ add_library(beveledcore STATIC
     src/beveled/bevel.cpp
     src/beveled/glyphs.cpp
     src/beveled/pixelpainter.cpp
+    src/beveled/shades.cpp
 )
 add_library(Beveled::Core ALIAS beveledcore)
 

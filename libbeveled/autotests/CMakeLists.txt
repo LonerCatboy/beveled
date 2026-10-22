@@ -4,7 +4,7 @@
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Test)
 include(ECMAddTests)
 
-set(tests pixelpaintertest beveltest glyphtest)
+set(tests pixelpaintertest beveltest glyphtest shadestest)
 foreach(test ${tests})
     ecm_add_test(${test}.cpp LINK_LIBRARIES Beveled::Core Qt6::Test TEST_NAME ${test})
     # Render into images only: no display server needed (and the desktop is never touched).
