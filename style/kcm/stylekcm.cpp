@@ -7,6 +7,7 @@
 
 #include <formhelpers.h>
 
+#include <KConfigDialogManager>
 #include <KPluginFactory>
 
 #include <QFormLayout>
@@ -14,31 +15,57 @@
 
 namespace Beveled {
 
-StyleKcm::StyleKcm(QObject *parent, const KPluginMetaData &data)
-    : KCModule(parent, data)
-    , m_config(new StyleConfig(this))
+void buildStyleForm(QWidget *form, StyleConfig *config)
 {
-    auto layout = new QFormLayout(widget());
+    auto layout = new QFormLayout(form);
 
-    addSlider(layout, QStringLiteral("Bevel shade depth:"), m_config->shadeDepthItem(), 10, QStringLiteral("%"));
+    addSlider(layout, QStringLiteral("Bevel shade depth:"), config->shadeDepthItem(), 10, QStringLiteral("%"));
     addChoice(layout, QStringLiteral("Sunken frames:"), QStringLiteral("SunkenFrame"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
 
     addSpacer(layout);
-    addSlider(layout, QStringLiteral("Button padding, sides:"), m_config->buttonPaddingXItem(), 1, QStringLiteral("px"));
-    addSlider(layout, QStringLiteral("Button padding, top and bottom:"), m_config->buttonPaddingYItem(), 1, QStringLiteral("px"));
-    addSlider(layout, QStringLiteral("Minimum button width:"), m_config->buttonMinWidthItem(), 10, QStringLiteral("px"));
+    addSlider(layout, QStringLiteral("Button padding, sides:"), config->buttonPaddingXItem(), 1, QStringLiteral("px"));
+    addSlider(layout, QStringLiteral("Button padding, top and bottom:"), config->buttonPaddingYItem(), 1, QStringLiteral("px"));
+    addSlider(layout, QStringLiteral("Minimum button width:"), config->buttonMinWidthItem(), 10, QStringLiteral("px"));
 
     addSpacer(layout);
-    addSlider(layout, QStringLiteral("Window and group margins:"), m_config->layoutMarginItem(), 1, QStringLiteral("px"));
-    addSlider(layout, QStringLiteral("Space between controls:"), m_config->layoutSpacingItem(), 1, QStringLiteral("px"));
+    addSlider(layout, QStringLiteral("Window and group margins:"), config->layoutMarginItem(), 1, QStringLiteral("px"));
+    addSlider(layout, QStringLiteral("Space between controls:"), config->layoutSpacingItem(), 1, QStringLiteral("px"));
 
     addSpacer(layout);
     auto note = new QLabel(QStringLiteral("Changes apply to applications started afterwards. The bevel shade depth is shared "
                                           "with the Beveled window decoration."),
-        widget());
+        form);
     note->setWordWrap(true);
     layout->addRow(note);
+}
 
+StyleConfigWidget::StyleConfigWidget(QWidget *parent)
+    : QWidget(parent)
+    , m_config(new StyleConfig(this))
+{
+    m_config->load();
+    buildStyleForm(this, m_config);
+    m_manager = new KConfigDialogManager(this, m_config);
+    connect(m_manager, &KConfigDialogManager::widgetModified, this, [this] { Q_EMIT changed(m_manager->hasChanged()); });
+}
+
+void StyleConfigWidget::save()
+{
+    m_manager->updateSettings();
+    Q_EMIT changed(false);
+}
+
+void StyleConfigWidget::defaults()
+{
+    m_manager->updateWidgetsDefault();
+    Q_EMIT changed(m_manager->hasChanged());
+}
+
+StyleKcm::StyleKcm(QObject *parent, const KPluginMetaData &data)
+    : KCModule(parent, data)
+    , m_config(new StyleConfig(this))
+{
+    buildStyleForm(widget(), m_config);
     addConfig(m_config, widget());
 }
 
@@ -49,6 +76,13 @@ void StyleKcm::load()
 }
 
 } // namespace Beveled
+
+extern "C" {
+Q_DECL_EXPORT QWidget *allocate_kstyle_config(QWidget *parent)
+{
+    return new Beveled::StyleConfigWidget(parent);
+}
+}
 
 K_PLUGIN_CLASS_WITH_JSON(Beveled::StyleKcm, "beveledstyleconfig.json")
 

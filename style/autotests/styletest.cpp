@@ -11,7 +11,9 @@
 
 #include <QApplication>
 #include <QFrame>
+#include <QLibrary>
 #include <QPushButton>
+#include <QSignalSpy>
 #include <QSlider>
 #include <QStandardPaths>
 #include <QStyle>
@@ -127,6 +129,43 @@ private Q_SLOTS:
         QCOMPARE(margin->value(), 6);
         QCOMPARE(margin->maximum(), 12);
         QVERIFY(kcm->widget()->findChild<QWidget *>(QStringLiteral("kcfg_SunkenFrame")));
+    }
+
+    // The page System Settings actually shows: the Application Style page resolves
+    // allocate_kstyle_config() and connects to changed(bool), save() and defaults() by name.
+    void configPage()
+    {
+        QLibrary library(QStringLiteral(STYLE_KCM_PATH));
+        QVERIFY2(library.load(), qPrintable(library.errorString()));
+        using Allocate = QWidget *(*)(QWidget *);
+        const auto allocate = reinterpret_cast<Allocate>(library.resolve("allocate_kstyle_config"));
+        QVERIFY(allocate);
+
+        std::unique_ptr<QWidget> page(allocate(nullptr));
+        QVERIFY(page);
+        for (const char *signature : {SIGNAL(changed(bool))}) {
+            QVERIFY(page->metaObject()->indexOfSignal(QMetaObject::normalizedSignature(signature + 1).constData()) >= 0);
+        }
+        for (const char *signature : {SLOT(save()), SLOT(defaults())}) {
+            QVERIFY(page->metaObject()->indexOfSlot(QMetaObject::normalizedSignature(signature + 1).constData()) >= 0);
+        }
+
+        QSignalSpy changed(page.get(), SIGNAL(changed(bool)));
+        auto spacing = page->findChild<QSlider *>(QStringLiteral("kcfg_LayoutSpacing"));
+        QVERIFY(spacing);
+        QCOMPARE(spacing->value(), 4);
+        spacing->setValue(7);
+        QVERIFY(!changed.isEmpty());
+        QCOMPARE(changed.last().at(0).toBool(), true);
+
+        QMetaObject::invokeMethod(page.get(), "save");
+        KSharedConfig::Ptr config = KSharedConfig::openConfig(QStringLiteral("beveledrc"));
+        config->reparseConfiguration();
+        QCOMPARE(config->group(QStringLiteral("Style")).readEntry("LayoutSpacing", -1), 7);
+
+        QMetaObject::invokeMethod(page.get(), "defaults");
+        QCOMPARE(spacing->value(), 4);
+        QMetaObject::invokeMethod(page.get(), "save");
     }
 
     // The application palette gets Beveled's 3D shades, as in the window decoration. Qt polishes
