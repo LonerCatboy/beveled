@@ -75,6 +75,18 @@ private Q_SLOTS:
             });
     }
 
+    void pushed()
+    {
+        check(QSize(6, 5), 1, [](QPainter *painter, const QPalette &p) { drawBevel(painter, QRect(0, 0, 6, 5), BevelStyle::Pushed, p); },
+            {
+                "#####W",
+                "#ssslW",
+                "#s??lW",
+                "#llllW",
+                "WWWWWW",
+            });
+    }
+
     void sunken()
     {
         check(QSize(6, 5), 1, [](QPainter *painter, const QPalette &p) { drawBevel(painter, QRect(0, 0, 6, 5), BevelStyle::Sunken, p); },

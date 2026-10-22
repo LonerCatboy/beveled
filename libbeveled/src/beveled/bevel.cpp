@@ -32,6 +32,8 @@ BevelColors bevelColors(BevelStyle style, const QPalette &p)
         return {{p.color(QPalette::Light), p.color(QPalette::Shadow)}, {p.color(QPalette::Midlight), p.color(QPalette::Dark)}};
     case BevelStyle::Pressed:
         return {{p.color(QPalette::Shadow), p.color(QPalette::Shadow)}, {p.color(QPalette::Dark), p.color(QPalette::Dark)}};
+    case BevelStyle::Pushed:
+        return {{p.color(QPalette::Shadow), p.color(QPalette::Light)}, {p.color(QPalette::Dark), p.color(QPalette::Midlight)}};
     case BevelStyle::Sunken:
         return {{p.color(QPalette::Dark), p.color(QPalette::Light)}, {p.color(QPalette::Shadow), p.color(QPalette::Midlight)}};
     case BevelStyle::Etched:
@@ -52,6 +54,12 @@ void drawBevel(QPainter *painter, const QRect &logicalRect, const BevelColors &c
 void drawBevel(QPainter *painter, const QRect &logicalRect, BevelStyle style, const QPalette &palette, int ringWidth)
 {
     drawBevel(painter, logicalRect, bevelColors(style, palette), ringWidth);
+}
+
+void fillRect(QPainter *painter, const QRect &logicalRect, const QColor &color)
+{
+    PixelPainter pp(painter);
+    pp.fillRect(pp.toDevice(logicalRect), color);
 }
 
 void drawEtchedLine(QPainter *painter, const QRect &logicalRect, Qt::Orientation orientation, const QPalette &palette, int ringWidth)

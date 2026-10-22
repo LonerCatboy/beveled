@@ -21,9 +21,12 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Gui Widgets)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS ColorScheme Config CoreAddons)
+find_package(KDecoration3 6.3 REQUIRED)
 
 # Components (libbeveled, style, decoration, ...) are added below.
 add_subdirectory(libbeveled)
+add_subdirectory(decoration)
+add_subdirectory(colors)
 add_subdirectory(tools/palette-dump)
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

@@ -1,0 +1,11 @@
+{
+    "KPlugin": {
+        "Description": "Classic beveled window decoration, drawn in code and crisp at every scale",
+        "EnabledByDefault": true,
+        "Name": "Beveled"
+    },
+    "org.kde.kdecoration3": {
+        "blur": false,
+        "recommendedBorderSize": "Normal"
+    }
+}

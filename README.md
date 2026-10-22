@@ -23,8 +23,8 @@ no antialiasing on geometric primitives.
 |---|---|---|
 | Drawing primitives library | `libbeveled/` | in progress |
 | Application style (QStyle, also QML/Kirigami) | `style/` | planned |
-| Window decoration (KDecoration3) | `decoration/` | planned |
-| Light and dark color schemes | `colors/` | planned |
+| Window decoration (KDecoration3) | `decoration/` | in progress |
+| Light and dark color schemes | `colors/` | light only |
 | Plasma style, cursors, icons, splash, global theme | — | later |
 
 ## Building
@@ -34,6 +34,43 @@ cmake --preset dev
 cmake --build --preset dev
 ctest --preset dev
 ```
+
+## Installing on a test machine
+
+Beveled is not packaged yet. On a disposable test machine (e.g. a Fedora KDE VM) it can be
+installed into `/usr`, where System Settings finds it.
+
+Build dependencies (Fedora):
+
+```bash
+sudo dnf install git cmake ninja-build gcc-c++ extra-cmake-modules qt6-qtbase-devel \
+  kf6-kconfig-devel kf6-kcoreaddons-devel kf6-kcolorscheme-devel kdecoration-devel
+```
+
+Build, test and install:
+
+```bash
+cmake --preset vm
+cmake --build --preset vm
+ctest --preset vm
+sudo cmake --install build-vm
+```
+
+Then choose **Beveled** in System Settings → Colors & Themes → Window Decorations, and
+**Beveled Classic** in Colors.
+
+After updating (`git pull` and the commands above), log out and back in: KWin keeps the
+previously loaded plugin in memory.
+
+Uninstall:
+
+```bash
+sudo xargs -a build-vm/install_manifest.txt rm -v
+```
+
+If the decoration crashes KWin and the session becomes unusable, switch to a text console
+(Ctrl+Alt+F3), log in, run the uninstall command above and reboot: KWin falls back to the
+default decoration.
 
 ## Trying the style on a single application
 

@@ -21,14 +21,54 @@
       "cacheVariables": {
         "ECM_ENABLE_SANITIZERS": "address;undefined"
       }
+    },
+    {
+      "name": "vm",
+      "displayName": "Test VM (RelWithDebInfo, installs into /usr)",
+      "generator": "Ninja",
+      "binaryDir": "${sourceDir}/build-vm",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_INSTALL_PREFIX": "/usr",
+        "BUILD_TESTING": "ON"
+      }
     }
   ],
   "buildPresets": [
-    { "name": "dev", "configurePreset": "dev" },
-    { "name": "asan", "configurePreset": "asan" }
+    {
+      "name": "dev",
+      "configurePreset": "dev"
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan"
+    },
+    {
+      "name": "vm",
+      "configurePreset": "vm"
+    }
   ],
   "testPresets": [
-    { "name": "dev", "configurePreset": "dev", "output": { "outputOnFailure": true } },
-    { "name": "asan", "configurePreset": "asan", "output": { "outputOnFailure": true } }
+    {
+      "name": "dev",
+      "configurePreset": "dev",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "asan",
+      "configurePreset": "asan",
+      "output": {
+        "outputOnFailure": true
+      }
+    },
+    {
+      "name": "vm",
+      "configurePreset": "vm",
+      "output": {
+        "outputOnFailure": true
+      }
+    }
   ]
 }

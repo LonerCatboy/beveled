@@ -32,6 +32,7 @@ enum class BevelStyle {
     Window, // window border: Midlight/Shadow, then Light/Dark
     Raised, // push and caption buttons: Light/Shadow, then Midlight/Dark
     Pressed, // pressed push button: flat Shadow ring, then flat Dark ring
+    Pushed, // pressed caption/tool button: Shadow/Light, then Dark/Midlight
     Sunken, // text fields, list views: Dark/Light, then Shadow/Midlight
     Etched, // group boxes, toolbar bands: Dark/Light, then Light/Dark
 };
@@ -48,6 +49,9 @@ constexpr int bevelThickness(int ringWidth = 1)
 {
     return 2 * ringWidth;
 }
+
+// Fills logicalRect with edges rounded to the device pixel grid, so fills always meet bevels.
+void fillRect(QPainter *painter, const QRect &logicalRect, const QColor &color);
 
 // Horizontal etched separator (Dark line above a Light line) at the vertical center of
 // logicalRect, and its vertical counterpart (Dark left, Light right).
