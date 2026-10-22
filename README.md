@@ -24,7 +24,7 @@ no antialiasing on geometric primitives.
 | Drawing primitives library | `libbeveled/` | in progress |
 | Application style (QStyle, also QML/Kirigami) | `style/` | planned |
 | Window decoration (KDecoration3) | `decoration/` | in progress |
-| Color schemes (Classic, Modern, Dark) | `colors/` | in progress |
+| Color schemes (Classic, Modern, Parchment, Dark) | `colors/` | in progress |
 | Plasma style, cursors, icons, splash, global theme | — | later |
 
 ## Building
@@ -58,7 +58,7 @@ sudo cmake --install build-vm
 ```
 
 Then choose **Beveled** in System Settings → Colors & Themes → Window Decorations, and
-**Beveled Classic**, **Beveled Modern** or **Beveled Dark** in Colors.
+**Beveled Classic**, **Beveled Modern**, **Beveled Parchment** or **Beveled Dark** in Colors.
 
 The decoration options (title bar, bevels, shade depth, button hover and padding, shadows)
 are behind the edit button of Beveled in Window Decorations, and are stored in
