@@ -40,7 +40,8 @@ toolbox run -c kde-dev ctest --preset dev
 
 ## Provare lo stile su una singola applicazione
 
-Senza installare nulla e senza cambiare le impostazioni globali:
+Da eseguire in una macchina di test (es. una VM), senza installare nulla e senza cambiare le
+impostazioni globali:
 
 ```bash
 QT_PLUGIN_PATH=$PWD/build/bin QT_SCALE_FACTOR=1.5 kwrite -style beveled

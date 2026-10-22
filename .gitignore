@@ -13,6 +13,9 @@ CMakeUserPresets.json
 *.swp
 *~
 
+# Screenshot di riferimento (materiale protetto, solo locale)
+/riferimenti/
+
 # Output dei test pixel
 /tests/output/
 
