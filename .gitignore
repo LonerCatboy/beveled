@@ -19,5 +19,7 @@ CMakeUserPresets.json
 # Output dei test pixel
 /tests/output/
 
-# Preferenze personali di Claude Code
-/.claude/settings.local.json
+# File di lavoro privati (istruzioni e permessi dell'assistente): mai nel repository
+/CLAUDE.md
+/CLAUDE.local.md
+/.claude/
