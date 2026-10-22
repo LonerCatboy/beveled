@@ -30,6 +30,7 @@ add_subdirectory(decoration)
 add_subdirectory(style)
 add_subdirectory(colors)
 add_subdirectory(plasma)
+add_subdirectory(lookandfeel)
 add_subdirectory(tools/palette-dump)
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)

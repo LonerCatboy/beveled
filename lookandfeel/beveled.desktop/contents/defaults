@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 LonerCatboy
+# SPDX-License-Identifier: CC0-1.0
+#
+# Settings applied by the Beveled global theme. Icons and cursors stay Breeze for now.
+
+[kdeglobals][KDE]
+widgetStyle=Beveled
+
+[kdeglobals][General]
+ColorScheme=BeveledClassic
+
+[kdeglobals][Icons]
+Theme=breeze
+
+[plasmarc][Theme]
+name=beveled
+
+[kcminputrc][Mouse]
+cursorTheme=breeze_cursors
+
+[kwinrc][org.kde.kdecoration2]
+library=beveled
+
+[ksplashrc][KSplash]
+Engine=KSplashQML
+Theme=beveled.desktop

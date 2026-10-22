@@ -27,7 +27,8 @@ no antialiasing on geometric primitives.
 | Window decoration (KDecoration3) | `decoration/` | in progress |
 | Color schemes (Classic, Modern, Parchment, Dark) | `colors/` | in progress |
 | Plasma style (panel, task buttons, popups, tooltips) | `plasma/` | in progress |
-| Cursors, icons, splash, global theme | — | later |
+| Global theme with splash screen and classic panel layout | `lookandfeel/` | in progress |
+| Cursors, icons | — | later (Breeze for now) |
 
 ## Building
 
@@ -47,7 +48,7 @@ Build dependencies (Fedora):
 ```bash
 sudo dnf install git cmake ninja-build gcc-c++ extra-cmake-modules qt6-qtbase-devel \
   kf6-kconfig-devel kf6-kcoreaddons-devel kf6-kcolorscheme-devel kf6-kconfigwidgets-devel \
-  kf6-kcmutils-devel kdecoration-devel python3
+  kf6-kcmutils-devel kdecoration-devel qt6-qtdeclarative-devel python3
 ```
 
 Build, test and install:
@@ -59,8 +60,13 @@ ctest --preset vm
 sudo cmake --install build-vm
 ```
 
-Then choose **Beveled** in System Settings → Colors & Themes → Window Decorations, and
-**Beveled Classic**, **Beveled Modern**, **Beveled Parchment** or **Beveled Dark** in Colors.
+The quickest way to try everything: System Settings → Colors & Themes → Global Theme →
+**Beveled**. It sets the color scheme, window decoration, application and Plasma styles and the
+splash screen; tick "Use desktop layout from theme" there for a classic 28px taskbar (this
+replaces your current panels).
+
+Each part can also be chosen on its own: **Beveled** in Window Decorations, and **Beveled
+Classic**, **Beveled Modern**, **Beveled Parchment** or **Beveled Dark** in Colors.
 
 For the panel and popups, choose **Beveled** (light color schemes) or **Beveled Dark** (dark
 color schemes) in Plasma Style. The panel height is a panel setting, not part of the style: right
