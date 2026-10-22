@@ -4,6 +4,9 @@
 # Classic light scheme. Values follow the well-known classic 3D desktop palette:
 #   face 212,208,200   highlight 255,255,255   shadow 128,128,128   dark shadow 64,64,64
 #   selection / active title 10,36,106 -> 166,202,240   inactive title 128,128,128 -> 192,192,192
+#
+# No [Colors:Header] group on purpose: when it exists, KWin paints title bars with the Header
+# colors instead of [WM], and apps fall back to the Window colors anyway.
 
 [ColorEffects:Disabled]
 Color=128,128,128
@@ -52,20 +55,6 @@ ForegroundNeutral=255,255,128
 ForegroundNormal=255,255,255
 ForegroundPositive=128,255,128
 ForegroundVisited=255,128,255
-
-[Colors:Header]
-BackgroundAlternate=192,192,192
-BackgroundNormal=212,208,200
-DecorationFocus=10,36,106
-DecorationHover=10,36,106
-ForegroundActive=0,0,128
-ForegroundInactive=128,128,128
-ForegroundLink=0,0,255
-ForegroundNegative=192,0,0
-ForegroundNeutral=128,128,0
-ForegroundNormal=0,0,0
-ForegroundPositive=0,128,0
-ForegroundVisited=128,0,128
 
 [Colors:Selection]
 BackgroundAlternate=10,36,106
