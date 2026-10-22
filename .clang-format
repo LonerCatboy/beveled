@@ -1,0 +1,26 @@
+# SPDX-FileCopyrightText: 2026 LonerCatboy
+# SPDX-License-Identifier: CC0-1.0
+#
+# Stile vicino a quello dei progetti KDE (base WebKit, 160 colonne).
+---
+Language: Cpp
+BasedOnStyle: WebKit
+ColumnLimit: 160
+Standard: Latest
+BreakBeforeBraces: Custom
+BraceWrapping:
+  AfterClass: true
+  AfterFunction: true
+  AfterStruct: true
+  AfterEnum: false
+  AfterNamespace: false
+  SplitEmptyFunction: true
+BreakConstructorInitializers: BeforeComma
+AllowShortFunctionsOnASingleLine: Inline
+AlwaysBreakTemplateDeclarations: Yes
+PointerAlignment: Right
+SpaceAfterTemplateKeyword: false
+IncludeBlocks: Preserve
+InsertBraces: true
+FixNamespaceComments: true
+...
