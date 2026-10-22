@@ -33,6 +33,32 @@ private:
     }
 
 private Q_SLOTS:
+    // Nudged glyphs move by one device pixel, pressed glyphs by one unit (scale pixels).
+    void offsets()
+    {
+        const QPalette p = TestUtils::testPalette();
+        for (const int scale : {1, 2, 3}) {
+            const auto glyphImage = [&](GlyphOffset offset) {
+                return TestUtils::render(CaptionButtonSize, scale, [&](QPainter *painter) {
+                    const QRect button(QPoint(0, 0), CaptionButtonSize);
+                    painter->fillRect(button, p.color(QPalette::Button));
+                    drawCaptionGlyph(painter, button, Glyph::Close, p, true, offset);
+                });
+            };
+            const QImage rest = glyphImage(GlyphOffset::None);
+            for (const auto &[offset, shift] : {std::pair {GlyphOffset::Nudged, 1}, std::pair {GlyphOffset::Pressed, scale}}) {
+                const QImage moved = glyphImage(offset);
+                QVERIFY(moved != rest);
+                for (int y = shift; y < rest.height(); ++y) {
+                    for (int x = shift; x < rest.width(); ++x) {
+                        QVERIFY2(moved.pixel(x, y) == rest.pixel(x - shift, y - shift),
+                            qPrintable(QStringLiteral("scale %1 shift %2 at %3,%4").arg(scale).arg(shift).arg(x).arg(y)));
+                    }
+                }
+            }
+        }
+    }
+
     void minimize()
     {
         check(Glyph::Minimize, true,

@@ -17,13 +17,20 @@ enum class Glyph {
     Close,
 };
 
+// How far the glyph moves from its resting position.
+enum class GlyphOffset {
+    None,
+    Nudged, // one device pixel down and right: a hint of a press, e.g. on hover
+    Pressed, // one unit down and right, as on a pressed classic button
+};
+
 // Size of the caption button the glyphs are designed for, in logical pixels.
 inline constexpr QSize CaptionButtonSize(16, 14);
 
 // Draws a caption glyph inside logicalButtonRect, at the same position as on a classic 16x14
 // caption button. Larger or smaller buttons keep the glyph centered by the same offset.
-// Pressed buttons shift the glyph one pixel down and right; disabled glyphs are drawn embossed
-// (Light shifted one pixel, then Dark on top).
-void drawCaptionGlyph(QPainter *painter, const QRect &logicalButtonRect, Glyph glyph, const QPalette &palette, bool enabled = true, bool pressed = false);
+// Disabled glyphs are drawn embossed (Light shifted one pixel, then Dark on top).
+void drawCaptionGlyph(
+    QPainter *painter, const QRect &logicalButtonRect, Glyph glyph, const QPalette &palette, bool enabled = true, GlyphOffset offset = GlyphOffset::None);
 
 } // namespace Beveled
