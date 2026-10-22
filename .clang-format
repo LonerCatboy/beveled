@@ -23,4 +23,6 @@ SpaceAfterTemplateKeyword: false
 IncludeBlocks: Preserve
 InsertBraces: true
 FixNamespaceComments: true
+NamespaceIndentation: None
+Cpp11BracedListStyle: true
 ...

@@ -1,0 +1,64 @@
+// SPDX-FileCopyrightText: 2026 LonerCatboy
+// SPDX-License-Identifier: GPL-2.0-or-later
+
+#include "pixelpainter.h"
+
+#include <QPainter>
+
+#include <cmath>
+
+namespace Beveled {
+
+PixelPainter::PixelPainter(QPainter *painter)
+    : m_painter(painter)
+{
+    m_painter->save();
+
+    // deviceTransform() = worldTransform() * D, where D is the part the paint device adds
+    // (device pixel ratio, redirection offset). Setting the world transform to D^-1 makes the
+    // whole chain an identity: coordinates become device pixels.
+    const QTransform device = m_painter->deviceTransform();
+    m_aligned = device.type() <= QTransform::TxScale && device.m11() > 0 && device.m22() > 0;
+
+    if (m_aligned) {
+        const QTransform devicePart = m_painter->worldTransform().inverted() * device;
+        m_toDevice = device;
+        m_painter->setWorldTransform(devicePart.inverted());
+        // Fractional ratios round down for now: 1.25-1.75 draw 1px lines (see CLAUDE.md).
+        m_unit = std::max(1, int(std::floor(std::min(device.m11(), device.m22()) + 1e-6)));
+    }
+
+    m_painter->setRenderHint(QPainter::Antialiasing, false);
+    m_painter->setPen(Qt::NoPen);
+}
+
+PixelPainter::~PixelPainter()
+{
+    m_painter->restore();
+}
+
+QRect PixelPainter::toDevice(const QRectF &logical) const
+{
+    const QPointF topLeft = m_toDevice.map(logical.topLeft());
+    const QPointF bottomRight = m_toDevice.map(logical.bottomRight());
+    const int left = int(std::lround(topLeft.x()));
+    const int top = int(std::lround(topLeft.y()));
+    const int right = int(std::lround(bottomRight.x()));
+    const int bottom = int(std::lround(bottomRight.y()));
+    return QRect(left, top, right - left, bottom - top);
+}
+
+QPoint PixelPainter::toDevice(const QPointF &logical) const
+{
+    const QPointF p = m_toDevice.map(logical);
+    return QPoint(int(std::lround(p.x())), int(std::lround(p.y())));
+}
+
+void PixelPainter::fillRect(const QRect &deviceRect, const QColor &color)
+{
+    if (deviceRect.isValid()) {
+        m_painter->fillRect(deviceRect, color);
+    }
+}
+
+} // namespace Beveled
