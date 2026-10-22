@@ -11,6 +11,7 @@ kcoreaddons_add_plugin(kcm_beveleddecoration
 kconfig_add_kcfg_files(kcm_beveleddecoration ../beveledconfig.kcfgc)
 
 target_link_libraries(kcm_beveleddecoration PRIVATE
+    Beveled::KcmCommon
     KF6::ConfigGui
     KF6::ConfigWidgets
     KF6::CoreAddons

@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+SPDX-FileCopyrightText: 2026 LonerCatboy
+SPDX-License-Identifier: CC0-1.0
+-->
+<!-- Application style options, shared by the style and its settings module. -->
+<kcfg xmlns="http://www.kde.org/standards/kcfg/1.0"
+      xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+      xsi:schemaLocation="http://www.kde.org/standards/kcfg/1.0 http://www.kde.org/standards/kcfg/1.0/kcfg.xsd">
+  <kcfgfile name="beveledrc"/>
+  <group name="General">
+    <!-- Also in decoration/beveledconfig.kcfg: keep the bounds in sync. -->
+    <entry name="ShadeDepth" type="Int">
+      <default>100</default>
+      <min>50</min>
+      <max>150</max>
+    </entry>
+  </group>
+  <group name="Style">
+    <!-- Space between a push button's bevel and its label, in logical pixels. -->
+    <entry name="ButtonPaddingX" type="Int">
+      <default>6</default>
+      <min>0</min>
+      <max>12</max>
+    </entry>
+    <entry name="ButtonPaddingY" type="Int">
+      <default>1</default>
+      <min>0</min>
+      <max>6</max>
+    </entry>
+    <!-- Minimum width of push buttons with text. -->
+    <entry name="ButtonMinWidth" type="Int">
+      <default>64</default>
+      <min>0</min>
+      <max>100</max>
+    </entry>
+    <!-- Margins around the contents of windows and groups, and spacing between widgets. -->
+    <entry name="LayoutMargin" type="Int">
+      <default>6</default>
+      <min>0</min>
+      <max>12</max>
+    </entry>
+    <entry name="LayoutSpacing" type="Int">
+      <default>4</default>
+      <min>0</min>
+      <max>12</max>
+    </entry>
+    <!-- Sunken frames (text fields, lists): Hard shows two pixels of light at bottom/right. -->
+    <entry name="SunkenFrame" type="Enum">
+      <choices>
+        <choice name="Soft"/>
+        <choice name="Hard"/>
+      </choices>
+      <default>Soft</default>
+    </entry>
+  </group>
+</kcfg>

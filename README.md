@@ -67,15 +67,8 @@ color schemes) in Plasma Style. The panel height is a panel setting, not part of
 click the panel, Enter Edit Mode, and adjust its height (the classic taskbar is about 28 px).
 
 For applications, choose **Beveled** in Application Style. It builds on Qt's own Windows style
-and changes the button padding and the 3D shades; until it has a settings page, its options are
-read from `~/.config/beveledrc`:
-
-```ini
-[Style]
-ButtonPaddingX=6   # 0-12, between a button's bevel and its label
-ButtonPaddingY=1   # 0-6
-ButtonMinWidth=64  # 0-100, for buttons with text
-```
+and changes button padding, layout margins and spacing, sunken frames and the 3D shades. Its
+options are behind the Configure button next to it and apply to applications started afterwards.
 
 The decoration options (title bar, bevels, shade depth, button hover and padding, shadows)
 are behind the edit button of Beveled in Window Decorations, and are stored in

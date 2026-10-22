@@ -3,8 +3,17 @@
 
 #include <beveled/shades.h>
 
+#include <KCModule>
+#include <KConfigGroup>
+#include <KPluginFactory>
+#include <KPluginMetaData>
+#include <KSharedConfig>
+
 #include <QApplication>
+#include <QFrame>
 #include <QPushButton>
+#include <QSlider>
+#include <QStandardPaths>
 #include <QStyle>
 #include <QStyleFactory>
 #include <QTest>
@@ -15,7 +24,32 @@ class StyleTest : public QObject
 {
     Q_OBJECT
 
+    static void writeOption(const char *key, const QString &value)
+    {
+        KConfigGroup group = KSharedConfig::openConfig(QStringLiteral("beveledrc"))->group(QStringLiteral("Style"));
+        group.writeEntry(key, value);
+        group.sync();
+    }
+
+    // Renders a sunken 2px frame with the given style and returns its pixels.
+    static QImage renderSunkenFrame(QStyle *style)
+    {
+        QFrame frame;
+        frame.setStyle(style);
+        frame.setFrameStyle(QFrame::StyledPanel | QFrame::Sunken);
+        frame.setLineWidth(2);
+        frame.resize(20, 20);
+        return frame.grab().toImage();
+    }
+
 private Q_SLOTS:
+    void initTestCase()
+    {
+        // Guard against reading or writing the real user configuration.
+        QVERIFY(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation).contains(QLatin1String("autotests")));
+        QFile::remove(QStandardPaths::writableLocation(QStandardPaths::GenericConfigLocation) + QStringLiteral("/beveledrc"));
+    }
+
     void found()
     {
         QVERIFY(QStyleFactory::keys().contains(QStringLiteral("Beveled"), Qt::CaseInsensitive));
@@ -42,6 +76,57 @@ private Q_SLOTS:
         QVERIFY(beveledSize.width() >= text.width() + 4);
         QVERIFY(beveledSize.height() >= text.height() + 4);
         button.setStyle(nullptr);
+    }
+
+    // Layout margins and spacing come from the options, not from the Windows style's 9-11px.
+    void layoutMetrics()
+    {
+        writeOption("LayoutMargin", QStringLiteral("5"));
+        writeOption("LayoutSpacing", QStringLiteral("99")); // out of range: clamped to 12
+        std::unique_ptr<QStyle> style(QStyleFactory::create(QStringLiteral("Beveled")));
+        QCOMPARE(style->pixelMetric(QStyle::PM_LayoutLeftMargin), 5);
+        QCOMPARE(style->pixelMetric(QStyle::PM_LayoutBottomMargin), 5);
+        QCOMPARE(style->pixelMetric(QStyle::PM_LayoutHorizontalSpacing), 12);
+        QCOMPARE(style->pixelMetric(QStyle::PM_LayoutVerticalSpacing), 12);
+        writeOption("LayoutMargin", QStringLiteral("6"));
+        writeOption("LayoutSpacing", QStringLiteral("4"));
+    }
+
+    // Soft sunken frames show one light pixel at bottom/right (the inner ring is Midlight); the
+    // hard variant shows two.
+    void sunkenFrames()
+    {
+        writeOption("SunkenFrame", QStringLiteral("Soft"));
+        std::unique_ptr<QStyle> soft(QStyleFactory::create(QStringLiteral("Beveled")));
+        writeOption("SunkenFrame", QStringLiteral("Hard"));
+        std::unique_ptr<QStyle> hard(QStyleFactory::create(QStringLiteral("Beveled")));
+        writeOption("SunkenFrame", QStringLiteral("Soft"));
+
+        const QPalette palette = QApplication::palette();
+        const QImage softImage = renderSunkenFrame(soft.get());
+        const QImage hardImage = renderSunkenFrame(hard.get());
+        const int last = softImage.width() - 1;
+        const int mid = softImage.height() / 2;
+        QCOMPARE(softImage.pixel(last, mid), palette.color(QPalette::Light).rgb());
+        QCOMPARE(softImage.pixel(last - 1, mid), palette.color(QPalette::Midlight).rgb());
+        QCOMPARE(hardImage.pixel(last, mid), palette.color(QPalette::Light).rgb());
+        QCOMPARE(hardImage.pixel(last - 1, mid), palette.color(QPalette::Light).rgb());
+        QCOMPARE(hardImage.pixel(1, mid), palette.color(QPalette::Shadow).rgb());
+    }
+
+    // The settings module loads and its sliders take their range from the schema.
+    void settingsModule()
+    {
+        QWidget host;
+        const auto result = KPluginFactory::instantiatePlugin<KCModule>(KPluginMetaData(QStringLiteral(STYLE_KCM_PATH)), &host);
+        QVERIFY2(result, qPrintable(result.errorString));
+        std::unique_ptr<KCModule> kcm(result.plugin);
+        kcm->load();
+        auto margin = kcm->widget()->findChild<QSlider *>(QStringLiteral("kcfg_LayoutMargin"));
+        QVERIFY(margin);
+        QCOMPARE(margin->value(), 6);
+        QCOMPARE(margin->maximum(), 12);
+        QVERIFY(kcm->widget()->findChild<QWidget *>(QStringLiteral("kcfg_SunkenFrame")));
     }
 
     // The application palette gets Beveled's 3D shades, as in the window decoration. Qt polishes

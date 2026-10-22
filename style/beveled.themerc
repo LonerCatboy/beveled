@@ -1,0 +1,12 @@
+# SPDX-FileCopyrightText: 2026 LonerCatboy
+# SPDX-License-Identifier: CC0-1.0
+#
+# Lists the style in System Settings and links its "Configure..." page.
+
+[Misc]
+Name=Beveled
+Comment=Classic beveled widgets with compact spacing
+ConfigPage=kstyle_config/beveledstyleconfig
+
+[KDE]
+WidgetStyle=Beveled

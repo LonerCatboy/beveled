@@ -5,37 +5,36 @@
 
 #include <QProxyStyle>
 
+#include <memory>
+
 namespace Beveled {
 
-// Bounded user options read from ~/.config/beveledrc, in logical pixels or percent.
-struct StyleOptions
-{
-    int shadeDepth = 100; // [General] ShadeDepth, 50-150, shared with the decoration
-    int buttonPaddingX = 6; // [Style] ButtonPaddingX, 0-12: between a button's bevel and its label
-    int buttonPaddingY = 1; // [Style] ButtonPaddingY, 0-6
-    int buttonMinWidth = 64; // [Style] ButtonMinWidth, 0-100: for buttons with text
-
-    static StyleOptions load();
-};
+class StyleConfig;
 
 // Qt's built-in Windows style, with Beveled's changes on top. QProxyStyle is the public Qt API
 // for this: everything not overridden here is drawn and measured by the Windows style, which Qt
 // maintains. If Qt ever stops shipping it, Fusion is used instead.
+//
+// Options come from ~/.config/beveledrc and are read when the style is created, i.e. when an
+// application starts.
 class Style : public QProxyStyle
 {
     Q_OBJECT
 
 public:
     Style();
+    ~Style() override;
 
     // Replaces KDE's computed 3D colors with Beveled's own, as the window decoration does.
     void polish(QPalette &palette) override;
     using QProxyStyle::polish;
 
+    int pixelMetric(PixelMetric metric, const QStyleOption *option = nullptr, const QWidget *widget = nullptr) const override;
     QSize sizeFromContents(ContentsType type, const QStyleOption *option, const QSize &contentsSize, const QWidget *widget) const override;
+    void drawPrimitive(PrimitiveElement element, const QStyleOption *option, QPainter *painter, const QWidget *widget = nullptr) const override;
 
 private:
-    StyleOptions m_options;
+    std::unique_ptr<StyleConfig> m_config;
 };
 
 } // namespace Beveled

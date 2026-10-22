@@ -25,6 +25,7 @@ find_package(KDecoration3 6.3 REQUIRED)
 
 # Components (libbeveled, style, decoration, ...) are added below.
 add_subdirectory(libbeveled)
+add_subdirectory(kcmcommon)
 add_subdirectory(decoration)
 add_subdirectory(style)
 add_subdirectory(colors)

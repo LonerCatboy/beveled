@@ -5,13 +5,13 @@
 
 #include "beveledconfig.h"
 
+#include <formhelpers.h>
+
 #include <KPluginFactory>
 
 #include <QCheckBox>
 #include <QComboBox>
 #include <QFormLayout>
-#include <QHBoxLayout>
-#include <QLabel>
 #include <QSlider>
 
 #include <algorithm>
@@ -19,47 +19,6 @@
 namespace Beveled {
 
 namespace {
-
-// Combo box indexes follow the order of the choices in beveledconfig.kcfg.
-QComboBox *addChoice(QFormLayout *layout, const QString &label, const QString &entry, const QStringList &choices)
-{
-    auto combo = new QComboBox(layout->parentWidget());
-    combo->setObjectName(QStringLiteral("kcfg_") + entry);
-    combo->addItems(choices);
-    layout->addRow(label, combo);
-    return combo;
-}
-
-// The slider range comes from the <min>/<max> of the entry, so it cannot drift from the schema.
-QSlider *addSlider(QFormLayout *layout, const QString &label, const KConfigSkeleton::ItemInt *item, int pageStep, const QString &unit)
-{
-    QWidget *parent = layout->parentWidget();
-    auto slider = new QSlider(Qt::Horizontal, parent);
-    slider->setObjectName(QStringLiteral("kcfg_") + item->name());
-    slider->setRange(item->minValue().toInt(), item->maxValue().toInt());
-    slider->setPageStep(pageStep);
-    slider->setTickInterval(pageStep);
-    slider->setTickPosition(QSlider::TicksBelow);
-
-    auto value = new QLabel(parent);
-    const auto showValue = [value, unit](int v) { value->setText(QStringLiteral("%1 %2").arg(v).arg(unit)); };
-    QObject::connect(slider, &QSlider::valueChanged, value, showValue);
-    showValue(slider->value());
-
-    auto row = new QHBoxLayout;
-    row->addWidget(slider);
-    row->addWidget(value);
-    layout->addRow(label, row);
-    return slider;
-}
-
-QCheckBox *addCheck(QFormLayout *layout, const QString &text, const QString &entry)
-{
-    auto check = new QCheckBox(text, layout->parentWidget());
-    check->setObjectName(QStringLiteral("kcfg_") + entry);
-    layout->addRow(QString(), check);
-    return check;
-}
 
 // A preset sets several options at once, by entry name; combo boxes take the choice index.
 // Every preset lists the same entries, so that the preset menu can tell which one is in use.
@@ -94,39 +53,9 @@ QList<Preset> presets()
     };
 }
 
-int widgetValue(const QWidget *widget)
-{
-    if (auto combo = qobject_cast<const QComboBox *>(widget)) {
-        return combo->currentIndex();
-    }
-    if (auto check = qobject_cast<const QCheckBox *>(widget)) {
-        return check->isChecked();
-    }
-    if (auto slider = qobject_cast<const QSlider *>(widget)) {
-        return slider->value();
-    }
-    return -1;
-}
-
-void setWidgetValue(QWidget *widget, int value)
-{
-    if (auto combo = qobject_cast<QComboBox *>(widget)) {
-        combo->setCurrentIndex(value);
-    } else if (auto check = qobject_cast<QCheckBox *>(widget)) {
-        check->setChecked(value != 0);
-    } else if (auto slider = qobject_cast<QSlider *>(widget)) {
-        slider->setValue(value);
-    }
-}
-
 QWidget *optionWidget(QWidget *form, const QString &entry)
 {
     return form->findChild<QWidget *>(QStringLiteral("kcfg_") + entry);
-}
-
-void addSpacer(QFormLayout *layout)
-{
-    layout->addItem(new QSpacerItem(0, layout->parentWidget()->fontMetrics().height() / 2));
 }
 
 } // namespace
