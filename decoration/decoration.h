@@ -42,6 +42,7 @@ private:
     int fontHeight() const;
     int buttonHeight() const;
     int titleHeight() const;
+    QRect frameRect() const;
     QRect titleRect() const;
 
     void updateLayout();

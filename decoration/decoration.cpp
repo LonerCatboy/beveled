@@ -246,10 +246,19 @@ int Decoration::titleHeight() const
     return std::max(buttonHeight() + 2 * m_config->buttonMargin(), fontHeight());
 }
 
+// The whole decoration in whole logical pixels. KWin keeps window sizes in floating point and
+// renders each border into its own image placed at its rounded position; the size must round the
+// same way (not up, as toAlignedRect() does), or the bottom border image would show one row of the
+// unpainted client area and lose the outermost row of the bevel.
+QRect Decoration::frameRect() const
+{
+    return QRect(QPoint(0, 0), size().toSize());
+}
+
 QRect Decoration::titleRect() const
 {
     const int f = frameWidth();
-    return QRect(f, f, std::max(0, int(size().width()) - 2 * f), titleHeight());
+    return QRect(f, f, std::max(0, frameRect().width() - 2 * f), titleHeight());
 }
 
 void Decoration::updateLayout()
@@ -282,7 +291,7 @@ void Decoration::updateTranslucency()
 {
     setOpaque(false);
     if (translucent()) {
-        const QRect full = rect().toAlignedRect();
+        const QRect full = frameRect();
         setBlurRegion(QRegion(full).subtracted(full.marginsRemoved(borders().toMargins())));
     } else {
         setBlurRegion(QRegion());
@@ -430,7 +439,7 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
 {
     KDecoration3::DecoratedWindow *w = window();
     const QPalette pal = palette();
-    const QRect full = rect().toAlignedRect();
+    const QRect full = frameRect();
     const QRect client = full.marginsRemoved(borders().toMargins());
 
     // With a translucent decoration, the frame and title bar are painted with the Source
