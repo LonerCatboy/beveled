@@ -24,10 +24,17 @@ struct Shades
 // With depth = 1.0 a face of 212,208,200 gives exactly 255,255,255 / 212,208,200 /
 // 128,128,128 / 64,64,64. depth scales how far the shadows move away from the face
 // (0 = flat, higher = deeper); it is meant to be exposed as a bounded user option.
+//
+// Light faces get a white highlight as in the classic look. On darker faces a white edge would
+// glare, so the highlight moves only part of the way from the face towards white, keeping the
+// face's hue.
 Shades shadesForFace(const QColor &face, qreal depth = 1.0);
 
 // Replaces Light, Midlight, Mid, Dark and Shadow in every color group with shadesForFace()
 // of that group's Button color. Mid is set equal to Dark: the classic look has no separate Mid.
 void applyShades(QPalette &palette, qreal depth = 1.0);
+
+// Linear blend of two colors: t = 0 gives a, t = 1 gives b. Alpha is taken from a.
+QColor mix(const QColor &a, const QColor &b, qreal t);
 
 } // namespace Beveled

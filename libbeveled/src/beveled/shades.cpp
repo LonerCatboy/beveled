@@ -15,6 +15,10 @@ namespace {
 // Ratios of the classic shadow grays to the gray level of the 212,208,200 face (qGray = 208.125).
 constexpr qreal DarkRatio = 128.0 / 208.125;
 constexpr qreal ShadowRatio = 64.0 / 208.125;
+// Share of the way from the face to white taken by the highlight on the darkest faces; it grows
+// to 1 (pure white) at the classic face gray and above.
+constexpr qreal MinLightAmount = 0.25;
+constexpr qreal ClassicGray = 208.125;
 
 QColor grayAt(qreal level)
 {
@@ -30,9 +34,9 @@ Shades shadesForFace(const QColor &face, qreal depth)
     const qreal darkRatio = 1.0 - (1.0 - DarkRatio) * depth;
     const qreal shadowRatio = 1.0 - (1.0 - ShadowRatio) * depth;
 
-    // TODO: tune the highlight for dark faces when the dark scheme is designed.
+    const qreal lightAmount = std::min(1.0, MinLightAmount + (1.0 - MinLightAmount) * gray / ClassicGray);
     return Shades {
-        .light = QColor(255, 255, 255),
+        .light = mix(face, QColor(255, 255, 255), lightAmount),
         .midlight = face,
         .dark = grayAt(gray * darkRatio),
         .shadow = grayAt(gray * shadowRatio),
@@ -49,6 +53,12 @@ void applyShades(QPalette &palette, qreal depth)
         palette.setColor(group, QPalette::Mid, s.dark);
         palette.setColor(group, QPalette::Shadow, s.shadow);
     }
+}
+
+QColor mix(const QColor &a, const QColor &b, qreal t)
+{
+    const auto channel = [t](int x, int y) { return std::clamp(int(std::lround(x + (y - x) * t)), 0, 255); };
+    return QColor(channel(a.red(), b.red()), channel(a.green(), b.green()), channel(a.blue(), b.blue()), a.alpha());
 }
 
 } // namespace Beveled

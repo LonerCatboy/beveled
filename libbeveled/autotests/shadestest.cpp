@@ -38,6 +38,30 @@ private Q_SLOTS:
         QCOMPARE(extreme.shadow, QColor(0, 0, 0));
     }
 
+    // Dark faces: a softer highlight that keeps the order light > face > dark > shadow.
+    void darkFace()
+    {
+        const QColor face(60, 60, 64);
+        const Shades s = shadesForFace(face);
+        QVERIFY(s.light.red() > face.red() + 40);
+        QVERIFY(s.light.red() < 200);
+        QVERIFY(s.light.blue() >= s.light.red()); // the face's hue is kept
+        QCOMPARE(s.midlight, face);
+        QVERIFY(s.dark.red() < face.red());
+        QVERIFY(s.shadow.red() < s.dark.red());
+    }
+
+    // Faces lighter than the classic gray keep a pure white highlight.
+    void lightFace() { QCOMPARE(shadesForFace(QColor(240, 240, 240)).light, QColor(255, 255, 255)); }
+
+    void mixColors()
+    {
+        QCOMPARE(mix(QColor(0, 0, 0), QColor(255, 255, 255), 0.0), QColor(0, 0, 0));
+        QCOMPARE(mix(QColor(0, 0, 0), QColor(255, 255, 255), 1.0), QColor(255, 255, 255));
+        QCOMPARE(mix(QColor(0, 100, 200), QColor(100, 200, 0), 0.5), QColor(50, 150, 100));
+        QCOMPARE(mix(QColor(10, 10, 10, 77), QColor(255, 255, 255), 0.0).alpha(), 77);
+    }
+
     void applyToPalette()
     {
         QPalette p;
