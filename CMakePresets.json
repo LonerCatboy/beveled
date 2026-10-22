@@ -3,7 +3,7 @@
   "configurePresets": [
     {
       "name": "dev",
-      "displayName": "Sviluppo (Debug, Ninja, build/)",
+      "displayName": "Development (Debug, Ninja, build/)",
       "generator": "Ninja",
       "binaryDir": "${sourceDir}/build",
       "cacheVariables": {
@@ -16,7 +16,7 @@
     {
       "name": "asan",
       "inherits": "dev",
-      "displayName": "Sviluppo con AddressSanitizer",
+      "displayName": "Development with AddressSanitizer",
       "binaryDir": "${sourceDir}/build-asan",
       "cacheVariables": {
         "ECM_ENABLE_SANITIZERS": "address;undefined"

@@ -13,13 +13,13 @@ CMakeUserPresets.json
 *.swp
 *~
 
-# Screenshot di riferimento (materiale protetto, solo locale)
+# Reference screenshots (protected material, local only)
 /riferimenti/
 
-# Output dei test pixel
+# Pixel test output
 /tests/output/
 
-# File di lavoro privati (istruzioni e permessi dell'assistente): mai nel repository
+# Private working files (assistant instructions and permissions): never in the repository
 /CLAUDE.md
 /CLAUDE.local.md
 /.claude/

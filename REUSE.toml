@@ -1,6 +1,6 @@
 version = 1
 
-# File che non ammettono un'intestazione SPDX (JSON) e REUSE.toml stesso.
+# Files that cannot carry an SPDX header (JSON) and REUSE.toml itself.
 [[annotations]]
 path = ["CMakePresets.json", "REUSE.toml"]
 precedence = "aggregate"

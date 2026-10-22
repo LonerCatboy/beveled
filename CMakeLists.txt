@@ -21,6 +21,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Gui Widgets)
 
-# I componenti (libbeveled, style, decoration, ...) verranno aggiunti qui con add_subdirectory().
+# Components (libbeveled, style, decoration, ...) are added below.
 
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
