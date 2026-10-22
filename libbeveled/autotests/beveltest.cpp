@@ -87,6 +87,30 @@ private Q_SLOTS:
             });
     }
 
+    void raisedHard()
+    {
+        check(QSize(6, 5), 1, [](QPainter *painter, const QPalette &p) { drawBevel(painter, QRect(0, 0, 6, 5), BevelStyle::RaisedHard, p); },
+            {
+                "WWWWW#",
+                "WWWW##",
+                "WW??##",
+                "W#####",
+                "######",
+            });
+    }
+
+    void pushedHard()
+    {
+        check(QSize(6, 5), 1, [](QPainter *painter, const QPalette &p) { drawBevel(painter, QRect(0, 0, 6, 5), BevelStyle::PushedHard, p); },
+            {
+                "#####W",
+                "####WW",
+                "##??WW",
+                "#WWWWW",
+                "WWWWWW",
+            });
+    }
+
     void sunken()
     {
         check(QSize(6, 5), 1, [](QPainter *painter, const QPalette &p) { drawBevel(painter, QRect(0, 0, 6, 5), BevelStyle::Sunken, p); },

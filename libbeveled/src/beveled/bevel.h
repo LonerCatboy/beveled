@@ -33,6 +33,8 @@ enum class BevelStyle {
     Raised, // push and caption buttons: Light/Shadow, then Midlight/Dark
     Pressed, // pressed push button: flat Shadow ring, then flat Dark ring
     Pushed, // pressed caption/tool button: Shadow/Light, then Dark/Midlight
+    RaisedHard, // high-contrast variant of Raised: both rings Light/Shadow
+    PushedHard, // high-contrast variant of Pushed: both rings Shadow/Light
     Sunken, // text fields, list views: Dark/Light, then Shadow/Midlight
     Etched, // group boxes, toolbar bands: Dark/Light, then Light/Dark
 };
