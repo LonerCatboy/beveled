@@ -51,6 +51,72 @@ QSlider *addSlider(QFormLayout *layout, const QString &label, const KConfigSkele
     return slider;
 }
 
+QCheckBox *addCheck(QFormLayout *layout, const QString &text, const QString &entry)
+{
+    auto check = new QCheckBox(text, layout->parentWidget());
+    check->setObjectName(QStringLiteral("kcfg_") + entry);
+    layout->addRow(QString(), check);
+    return check;
+}
+
+// A preset sets several options at once, by entry name; combo boxes take the choice index.
+struct Preset
+{
+    QString name;
+    QList<std::pair<QString, int>> values;
+};
+
+QList<Preset> presets()
+{
+    const auto classic = [](int titleBarStyle) {
+        return QList<std::pair<QString, int>> {
+            {QStringLiteral("TitleBarStyle"), titleBarStyle},
+            {QStringLiteral("AccentTitleBar"), 0},
+            {QStringLiteral("BoldTitle"), 1},
+            {QStringLiteral("FrameBevel"), 0},
+            {QStringLiteral("ShadeDepth"), 100},
+            {QStringLiteral("ButtonBevel"), 0},
+            {QStringLiteral("ButtonHover"), 0},
+            {QStringLiteral("ButtonMargin"), 2},
+            {QStringLiteral("ButtonPadding"), 0},
+            {QStringLiteral("ShadowStyle"), 0},
+        };
+    };
+    return {
+        {QStringLiteral("Classic, flat title bar"), classic(1)},
+        {QStringLiteral("Classic, gradient title bar"), classic(0)},
+        {QStringLiteral("Modern"),
+            {
+                {QStringLiteral("TitleBarStyle"), 0},
+                {QStringLiteral("AccentTitleBar"), 1},
+                {QStringLiteral("BoldTitle"), 0},
+                {QStringLiteral("FrameBevel"), 0},
+                {QStringLiteral("ShadeDepth"), 80},
+                {QStringLiteral("ButtonBevel"), 0},
+                {QStringLiteral("ButtonHover"), 1},
+                {QStringLiteral("ButtonMargin"), 2},
+                {QStringLiteral("ButtonPadding"), 0},
+                {QStringLiteral("ShadowStyle"), 1},
+                {QStringLiteral("ShadowDistance"), 4},
+            }},
+    };
+}
+
+// Sets the managed widgets; KCModule then sees the changes like any user edit.
+void applyPreset(QWidget *form, const Preset &preset)
+{
+    for (const auto &[entry, value] : preset.values) {
+        QWidget *widget = form->findChild<QWidget *>(QStringLiteral("kcfg_") + entry);
+        if (auto combo = qobject_cast<QComboBox *>(widget)) {
+            combo->setCurrentIndex(value);
+        } else if (auto check = qobject_cast<QCheckBox *>(widget)) {
+            check->setChecked(value != 0);
+        } else if (auto slider = qobject_cast<QSlider *>(widget)) {
+            slider->setValue(value);
+        }
+    }
+}
+
 void addSpacer(QFormLayout *layout)
 {
     layout->addItem(new QSpacerItem(0, layout->parentWidget()->fontMetrics().height() / 2));
@@ -64,10 +130,25 @@ DecorationKcm::DecorationKcm(QObject *parent, const KPluginMetaData &data)
 {
     auto layout = new QFormLayout(widget());
 
+    // Not a stored option: picking a preset fills in the widgets below, then the menu resets.
+    auto preset = new QComboBox(widget());
+    preset->setObjectName(QStringLiteral("preset"));
+    preset->addItem(QStringLiteral("Choose a preset..."));
+    for (const Preset &p : presets()) {
+        preset->addItem(p.name);
+    }
+    connect(preset, &QComboBox::activated, this, [this, preset](int index) {
+        if (index > 0) {
+            applyPreset(widget(), presets().at(index - 1));
+            preset->setCurrentIndex(0);
+        }
+    });
+    layout->addRow(QStringLiteral("Preset:"), preset);
+    addSpacer(layout);
+
     addChoice(layout, QStringLiteral("Title bar:"), QStringLiteral("TitleBarStyle"), {QStringLiteral("Gradient"), QStringLiteral("Solid color")});
-    auto accent = new QCheckBox(QStringLiteral("Use the accent color for the active title bar"), widget());
-    accent->setObjectName(QStringLiteral("kcfg_AccentTitleBar"));
-    layout->addRow(QString(), accent);
+    addCheck(layout, QStringLiteral("Use the accent color for the active title bar"), QStringLiteral("AccentTitleBar"));
+    addCheck(layout, QStringLiteral("Bold title text"), QStringLiteral("BoldTitle"));
     addChoice(layout, QStringLiteral("Window frame:"), QStringLiteral("FrameBevel"), {QStringLiteral("Soft (classic)"), QStringLiteral("Hard")});
     addSlider(layout, QStringLiteral("Bevel shade depth:"), m_config->shadeDepthItem(), 10, QStringLiteral("%"));
 

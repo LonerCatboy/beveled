@@ -119,6 +119,22 @@ private Q_SLOTS:
         QCOMPARE(child<QSlider>("kcfg_ButtonPadding")->value(), 4);
     }
 
+    // The flat classic preset sets every option it lists, and the preset menu resets itself.
+    void preset()
+    {
+        child<QComboBox>("kcfg_ShadowStyle")->setCurrentIndex(2);
+        child<QCheckBox>("kcfg_BoldTitle")->setChecked(false);
+        auto preset = child<QComboBox>("preset");
+        QVERIFY(preset->count() > 1);
+        preset->setCurrentIndex(1);
+        Q_EMIT preset->activated(1);
+        QCOMPARE(preset->currentIndex(), 0);
+        QCOMPARE(child<QComboBox>("kcfg_TitleBarStyle")->currentIndex(), 1);
+        QCOMPARE(child<QComboBox>("kcfg_ShadowStyle")->currentIndex(), 0);
+        QVERIFY(child<QCheckBox>("kcfg_BoldTitle")->isChecked());
+        QVERIFY(m_kcm->needsSave());
+    }
+
     void restoreDefaults()
     {
         m_kcm->defaults();
