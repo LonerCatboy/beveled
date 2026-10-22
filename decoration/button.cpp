@@ -39,6 +39,12 @@ Button *Button::create(DecorationButtonType type, Decoration *decoration)
     case DecorationButtonType::Minimize:
     case DecorationButtonType::Maximize:
     case DecorationButtonType::Close:
+    case DecorationButtonType::ContextHelp:
+    case DecorationButtonType::KeepAbove:
+    case DecorationButtonType::KeepBelow:
+    case DecorationButtonType::OnAllDesktops:
+    case DecorationButtonType::Shade:
+    case DecorationButtonType::Spacer:
         return new Button(type, decoration);
     default:
         return nullptr;
@@ -58,7 +64,7 @@ bool Button::isIcon() const
 void Button::paint(QPainter *painter, const QRectF &repaintArea)
 {
     Q_UNUSED(repaintArea)
-    if (!isVisible()) {
+    if (!isVisible() || type() == DecorationButtonType::Spacer) {
         return;
     }
 
@@ -71,7 +77,10 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
     }
 
     const QPalette pal = deco->palette();
-    const bool down = isPressed();
+    // Toggle buttons (keep above, on all desktops, ...) stay pushed while their state is on.
+    // Maximize is checkable too, but shows its state with the restore glyph instead.
+    const bool toggled = isCheckable() && isChecked() && type() != DecorationButtonType::Maximize;
+    const bool down = isPressed() || toggled;
     const auto hover = deco->config().buttonHover();
     const bool hovered = isHovered() && !down;
 
@@ -97,10 +106,30 @@ void Button::paint(QPainter *painter, const QRectF &repaintArea)
     }
 
     Glyph glyph = Glyph::Close;
-    if (type() == DecorationButtonType::Minimize) {
+    switch (type()) {
+    case DecorationButtonType::Minimize:
         glyph = Glyph::Minimize;
-    } else if (type() == DecorationButtonType::Maximize) {
+        break;
+    case DecorationButtonType::Maximize:
         glyph = deco->window()->isMaximized() ? Glyph::Restore : Glyph::Maximize;
+        break;
+    case DecorationButtonType::ContextHelp:
+        glyph = Glyph::Help;
+        break;
+    case DecorationButtonType::KeepAbove:
+        glyph = Glyph::KeepAbove;
+        break;
+    case DecorationButtonType::KeepBelow:
+        glyph = Glyph::KeepBelow;
+        break;
+    case DecorationButtonType::OnAllDesktops:
+        glyph = Glyph::OnAllDesktops;
+        break;
+    case DecorationButtonType::Shade:
+        glyph = Glyph::Shade;
+        break;
+    default:
+        break;
     }
     drawCaptionGlyph(painter, r, glyph, pal, isEnabled(), down ? GlyphOffset::Pressed : GlyphOffset::None);
     painter->restore();

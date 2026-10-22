@@ -47,6 +47,7 @@ private:
     void updateLayout();
     void recreateButtons();
     void layoutButtons();
+    static QList<Button *> visibleButtons(const QList<Button *> &buttons);
     void readTitleBlend();
     void updateShadow();
 

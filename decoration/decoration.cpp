@@ -23,6 +23,7 @@
 
 #include <algorithm>
 #include <cmath>
+#include <map>
 #include <memory>
 
 namespace Beveled {
@@ -33,7 +34,7 @@ namespace {
 constexpr int BevelWidth = bevelThickness(); // the two rings of the window border
 constexpr int TitleSeparator = 1; // face-colored row between the title bar and the client
 constexpr int TextMargin = 2; // between the caption text and the right buttons or edge
-constexpr int CloseGap = 2; // extra space on the left of the close button
+constexpr int ButtonGap = 2; // between caption buttons, except minimize and maximize
 constexpr int IconMargin = 2;
 constexpr int TextGap = 4; // between the icon (or left buttons) and the caption text
 constexpr int ResizeOnlyBorder = 4; // invisible resize area when there is no frame
@@ -69,9 +70,11 @@ constexpr qreal AccentBlendAmount = 0.6;
 // Shadow opacity (0-255), applied to the palette's Shadow color.
 constexpr int SoftShadowAlpha = 140;
 constexpr int SolidShadowAlpha = 110;
+// Inactive windows get a lighter shadow, so the active one stands out.
+constexpr qreal InactiveShadowOpacity = 0.6;
 
-// All windows share one shadow texture; it is rebuilt only when its parameters change and freed
-// when no decoration uses it any more.
+// Windows with the same shadow parameters share one texture (typically one for active and one for
+// inactive windows). Textures are built on first use and freed when no decoration uses them.
 std::shared_ptr<KDecoration3::DecorationShadow> sharedShadow(DecorationConfig::EnumShadowStyle::type style, int distance, const QColor &color)
 {
     struct Key
@@ -79,23 +82,22 @@ std::shared_ptr<KDecoration3::DecorationShadow> sharedShadow(DecorationConfig::E
         DecorationConfig::EnumShadowStyle::type style;
         int distance;
         QRgb color;
-        bool operator==(const Key &) const = default;
+        auto operator<=>(const Key &) const = default;
     };
-    static Key cachedKey {};
-    static std::weak_ptr<KDecoration3::DecorationShadow> cached;
+    static std::map<Key, std::weak_ptr<KDecoration3::DecorationShadow>> cache;
 
     const Key key {style, distance, color.rgba()};
-    if (auto shadow = cached.lock(); shadow && cachedKey == key) {
+    if (auto shadow = cache[key].lock()) {
         return shadow;
     }
+    std::erase_if(cache, [](const auto &entry) { return entry.second.expired(); });
 
     const ShadowTexture texture = style == DecorationConfig::EnumShadowStyle::Solid ? solidShadow(distance, color) : softShadow(distance, color);
     auto shadow = std::make_shared<KDecoration3::DecorationShadow>();
     shadow->setShadow(texture.image);
     shadow->setInnerShadowRect(texture.innerRect);
     shadow->setPadding(texture.padding);
-    cached = shadow;
-    cachedKey = key;
+    cache[key] = shadow;
     return shadow;
 }
 
@@ -139,7 +141,10 @@ bool Decoration::init()
 
     connect(w, &KDecoration3::DecoratedWindow::maximizedChanged, this, &Decoration::updateLayout);
     connect(w, &KDecoration3::DecoratedWindow::sizeChanged, this, &Decoration::updateLayout);
-    connect(w, &KDecoration3::DecoratedWindow::activeChanged, this, [this] { update(); });
+    connect(w, &KDecoration3::DecoratedWindow::activeChanged, this, [this] {
+        updateShadow();
+        update();
+    });
     connect(w, &KDecoration3::DecoratedWindow::captionChanged, this, [this] { update(); });
     connect(w, &KDecoration3::DecoratedWindow::paletteChanged, this, [this] {
         updateShadow();
@@ -227,6 +232,8 @@ void Decoration::recreateButtons()
     const auto create = [this](const QList<KDecoration3::DecorationButtonType> &types, QList<Button *> &list) {
         for (const KDecoration3::DecorationButtonType type : types) {
             if (Button *button = Button::create(type, this)) {
+                // Some buttons show or hide with the window state (help, on all desktops).
+                connect(button, &KDecoration3::DecorationButton::visibilityChanged, this, &Decoration::updateLayout);
                 list.append(button);
             }
         }
@@ -237,8 +244,9 @@ void Decoration::recreateButtons()
     updateLayout();
 }
 
-// Places the buttons as in the classic layout: caption buttons are adjacent, except for a small
-// gap on the left of the close button; the window icon sits at the left edge of the title bar.
+// Places the buttons as in the classic layout: minimize and maximize touch, every other pair of
+// neighbors keeps a small gap; the window icon keeps its own margin. Hidden buttons (e.g. help on
+// windows without context help) take no space.
 void Decoration::layoutButtons()
 {
     const QRect title = titleRect();
@@ -248,40 +256,59 @@ void Decoration::layoutButtons()
     const int top = title.top() + (title.height() - h) / 2;
     const int iconSize = title.height() - 2;
 
-    int x = title.left() + IconMargin;
-    for (int i = 0; i < m_leftButtons.size(); ++i) {
-        Button *button = m_leftButtons.at(i);
+    const auto gap = [](const Button *left, const Button *right) {
+        if (left->isIcon() || right->isIcon()) {
+            return IconMargin;
+        }
+        if (left->type() == KDecoration3::DecorationButtonType::Minimize && right->type() == KDecoration3::DecorationButtonType::Maximize) {
+            return 0;
+        }
+        return ButtonGap;
+    };
+    const auto width = [&](const Button *button) { return button->isIcon() ? iconSize : captionSize.width(); };
+    const auto place = [&](Button *button, int x) {
         if (button->isIcon()) {
             button->setGeometry(QRectF(x, title.top() + 1, iconSize, iconSize));
-            x += iconSize + IconMargin;
         } else {
-            if (i > 0 && button->type() == KDecoration3::DecorationButtonType::Close) {
-                x += CloseGap;
-            }
-            if (i == 0) {
-                x = title.left() + margin;
-            }
             button->setGeometry(QRectF(QPointF(x, top), captionSize));
-            x += captionSize.width();
+        }
+    };
+    const auto edgeMargin = [&](const Button *button) { return button->isIcon() ? IconMargin : margin; };
+
+    const QList<Button *> left = visibleButtons(m_leftButtons);
+    if (!left.isEmpty()) {
+        int x = title.left() + edgeMargin(left.first());
+        for (int i = 0; i < left.size(); ++i) {
+            if (i > 0) {
+                x += gap(left.at(i - 1), left.at(i));
+            }
+            place(left.at(i), x);
+            x += width(left.at(i));
         }
     }
 
-    x = title.right() + 1 - margin;
-    for (int i = m_rightButtons.size() - 1; i >= 0; --i) {
-        Button *button = m_rightButtons.at(i);
-        const bool beforeClose = i + 1 < m_rightButtons.size() && m_rightButtons.at(i + 1)->type() == KDecoration3::DecorationButtonType::Close;
-        if (beforeClose) {
-            x -= CloseGap;
-        }
-        if (button->isIcon()) {
-            x -= iconSize;
-            button->setGeometry(QRectF(x, title.top() + 1, iconSize, iconSize));
-            x -= IconMargin;
-        } else {
-            x -= captionSize.width();
-            button->setGeometry(QRectF(QPointF(x, top), captionSize));
+    const QList<Button *> right = visibleButtons(m_rightButtons);
+    if (!right.isEmpty()) {
+        int x = title.right() + 1 - edgeMargin(right.last());
+        for (int i = right.size() - 1; i >= 0; --i) {
+            if (i < right.size() - 1) {
+                x -= gap(right.at(i), right.at(i + 1));
+            }
+            x -= width(right.at(i));
+            place(right.at(i), x);
         }
     }
+}
+
+QList<Button *> Decoration::visibleButtons(const QList<Button *> &buttons)
+{
+    QList<Button *> visible;
+    for (Button *button : buttons) {
+        if (button->isVisible()) {
+            visible.append(button);
+        }
+    }
+    return visible;
 }
 
 void Decoration::readTitleBlend()
@@ -299,7 +326,8 @@ void Decoration::updateShadow()
         return;
     }
     QColor color = palette().color(QPalette::Shadow);
-    color.setAlpha(style == DecorationConfig::EnumShadowStyle::Solid ? SolidShadowAlpha : SoftShadowAlpha);
+    const int alpha = style == DecorationConfig::EnumShadowStyle::Solid ? SolidShadowAlpha : SoftShadowAlpha;
+    color.setAlpha(window()->isActive() ? alpha : int(alpha * InactiveShadowOpacity));
     setShadow(sharedShadow(style, m_config->shadowDistance(), color));
 }
 
@@ -346,17 +374,19 @@ void Decoration::paint(QPainter *painter, const QRectF &repaintArea)
 
     // Caption text between the left and right buttons.
     int textLeft = title.left() + TextGap;
-    for (const Button *button : std::as_const(m_leftButtons)) {
+    for (const Button *button : visibleButtons(m_leftButtons)) {
         textLeft = std::max(textLeft, int(button->geometry().right()) + TextGap);
     }
     int textRight = title.right() - TextMargin;
-    for (const Button *button : std::as_const(m_rightButtons)) {
+    for (const Button *button : visibleButtons(m_rightButtons)) {
         textRight = std::min(textRight, int(button->geometry().left()) - TextMargin);
     }
     if (textRight > textLeft) {
         const QRect textRect(textLeft, title.top(), textRight - textLeft, title.height());
         painter->save();
-        painter->setFont(settings()->font());
+        QFont font = settings()->font();
+        font.setBold(m_config->boldTitle());
+        painter->setFont(font);
         painter->setPen(foreground);
         const QString caption = painter->fontMetrics().elidedText(w->caption(), Qt::ElideRight, textRect.width());
         painter->drawText(textRect, Qt::AlignLeft | Qt::AlignVCenter | Qt::TextSingleLine, caption);
