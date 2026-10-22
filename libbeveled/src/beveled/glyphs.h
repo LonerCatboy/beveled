@@ -15,6 +15,11 @@ enum class Glyph {
     Maximize,
     Restore,
     Close,
+    Help,
+    KeepAbove,
+    KeepBelow,
+    OnAllDesktops,
+    Shade,
 };
 
 // How far the glyph moves from its resting position.

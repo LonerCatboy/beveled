@@ -145,6 +145,111 @@ private Q_SLOTS:
     }
 
     // Disabled MDI close button from the reference: embossed glyph.
+    void help()
+    {
+        check(Glyph::Help, true,
+            {
+                "WWWWWWWWWWWWWWW#",
+                "Wllllllllllllls#",
+                "Wl....kkkk....s#",
+                "Wl...kk..kk...s#",
+                "Wl.......kk...s#",
+                "Wl......kk....s#",
+                "Wl.....kk.....s#",
+                "Wl.....kk.....s#",
+                "Wl............s#",
+                "Wl.....kk.....s#",
+                "Wl.....kk.....s#",
+                "Wl............s#",
+                "Wssssssssssssss#",
+                "################",
+            });
+    }
+
+    void keepAbove()
+    {
+        check(Glyph::KeepAbove, true,
+            {
+                "WWWWWWWWWWWWWWW#",
+                "Wllllllllllllls#",
+                "Wl............s#",
+                "Wl............s#",
+                "Wl..kkkkkkk...s#",
+                "Wl............s#",
+                "Wl.....k......s#",
+                "Wl....kkk.....s#",
+                "Wl...kkkkk....s#",
+                "Wl..kkkkkkk...s#",
+                "Wl............s#",
+                "Wl............s#",
+                "Wssssssssssssss#",
+                "################",
+            });
+    }
+
+    void keepBelow()
+    {
+        check(Glyph::KeepBelow, true,
+            {
+                "WWWWWWWWWWWWWWW#",
+                "Wllllllllllllls#",
+                "Wl............s#",
+                "Wl............s#",
+                "Wl..kkkkkkk...s#",
+                "Wl...kkkkk....s#",
+                "Wl....kkk.....s#",
+                "Wl.....k......s#",
+                "Wl............s#",
+                "Wl..kkkkkkk...s#",
+                "Wl............s#",
+                "Wl............s#",
+                "Wssssssssssssss#",
+                "################",
+            });
+    }
+
+    void onAllDesktops()
+    {
+        check(Glyph::OnAllDesktops, true,
+            {
+                "WWWWWWWWWWWWWWW#",
+                "Wllllllllllllls#",
+                "Wl............s#",
+                "Wl..kkk.kkk...s#",
+                "Wl..kkk.kkk...s#",
+                "Wl..kkk.kkk...s#",
+                "Wl............s#",
+                "Wl..kkk.kkk...s#",
+                "Wl..kkk.kkk...s#",
+                "Wl..kkk.kkk...s#",
+                "Wl............s#",
+                "Wl............s#",
+                "Wssssssssssssss#",
+                "################",
+            });
+    }
+
+    void shade()
+    {
+        check(Glyph::Shade, true,
+            {
+                "WWWWWWWWWWWWWWW#",
+                "Wllllllllllllls#",
+                "Wl............s#",
+                "Wl............s#",
+                "Wl..kkkkkkk...s#",
+                "Wl..kkkkkkk...s#",
+                "Wl............s#",
+                "Wl.....k......s#",
+                "Wl....kkk.....s#",
+                "Wl...kkkkk....s#",
+                "Wl............s#",
+                "Wl............s#",
+                "Wssssssssssssss#",
+                "################",
+            });
+    }
+
     void closeDisabled()
     {
         check(Glyph::Close, false,

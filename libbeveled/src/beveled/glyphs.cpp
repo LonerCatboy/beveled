@@ -61,6 +61,55 @@ constexpr std::array<std::string_view, 7> closeRows = {
     "##....##",
 };
 
+constexpr std::array<std::string_view, 9> helpRows = {
+    ".####.",
+    "##..##",
+    "....##",
+    "...##.",
+    "..##..",
+    "..##..",
+    "......",
+    "..##..",
+    "..##..",
+};
+
+constexpr std::array<std::string_view, 6> keepAboveRows = {
+    "#######",
+    ".......",
+    "...#...",
+    "..###..",
+    ".#####.",
+    "#######",
+};
+
+constexpr std::array<std::string_view, 6> keepBelowRows = {
+    "#######",
+    ".#####.",
+    "..###..",
+    "...#...",
+    ".......",
+    "#######",
+};
+
+constexpr std::array<std::string_view, 7> onAllDesktopsRows = {
+    "###.###",
+    "###.###",
+    "###.###",
+    ".......",
+    "###.###",
+    "###.###",
+    "###.###",
+};
+
+constexpr std::array<std::string_view, 6> shadeRows = {
+    "#######",
+    "#######",
+    ".......",
+    "...#...",
+    "..###..",
+    ".#####.",
+};
+
 GlyphBitmap bitmap(Glyph glyph)
 {
     switch (glyph) {
@@ -72,6 +121,16 @@ GlyphBitmap bitmap(Glyph glyph)
         return {QPoint(3, 2), restoreRows};
     case Glyph::Close:
         return {QPoint(4, 3), closeRows};
+    case Glyph::Help:
+        return {QPoint(5, 2), helpRows};
+    case Glyph::KeepAbove:
+        return {QPoint(4, 4), keepAboveRows};
+    case Glyph::KeepBelow:
+        return {QPoint(4, 4), keepBelowRows};
+    case Glyph::OnAllDesktops:
+        return {QPoint(4, 3), onAllDesktopsRows};
+    case Glyph::Shade:
+        return {QPoint(4, 4), shadeRows};
     }
     return {};
 }
