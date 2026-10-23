@@ -1,0 +1,24 @@
+# SPDX-FileCopyrightText: 2026 LonerCatboy
+# SPDX-License-Identifier: GPL-2.0-or-later
+
+# Runs first on every "cmake --install". CMake rewrites install_manifest.txt at the end of each
+# install, so after an update it no longer lists files that the new version stopped installing.
+# This keeps every file ever installed from this build directory in installed_files.txt, which
+# uninstall.cmake reads too.
+
+set(manifest "@CMAKE_BINARY_DIR@/install_manifest.txt")
+set(history "@CMAKE_BINARY_DIR@/installed_files.txt")
+
+set(files "")
+foreach(list IN ITEMS "${history}" "${manifest}")
+    if(EXISTS "${list}")
+        file(STRINGS "${list}" entries)
+        list(APPEND files ${entries})
+    endif()
+endforeach()
+if(files)
+    list(REMOVE_DUPLICATES files)
+    list(SORT files)
+    list(JOIN files "\n" content)
+    file(WRITE "${history}" "${content}\n")
+endif()

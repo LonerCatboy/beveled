@@ -23,6 +23,11 @@ find_package(Qt6 ${QT_MIN_VERSION} REQUIRED COMPONENTS Core Gui Widgets)
 find_package(KF6 ${KF_MIN_VERSION} REQUIRED COMPONENTS ColorScheme Config ConfigWidgets CoreAddons KCMUtils)
 find_package(KDecoration3 6.3 REQUIRED)
 
+# Install rules run in the order they are declared: remember what the previous install put in
+# place before anything else, so that uninstall.cmake can remove it even after an update.
+configure_file(cmake/record-install.cmake.in ${CMAKE_BINARY_DIR}/record-install.cmake @ONLY)
+install(SCRIPT ${CMAKE_BINARY_DIR}/record-install.cmake)
+
 # Components (libbeveled, style, decoration, ...) are added below.
 add_subdirectory(libbeveled)
 add_subdirectory(kcmcommon)

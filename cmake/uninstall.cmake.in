@@ -1,18 +1,28 @@
 # SPDX-FileCopyrightText: 2026 LonerCatboy
 # SPDX-License-Identifier: GPL-2.0-or-later
 
-# Removes what the last "cmake --install" of this build directory installed:
+# Removes everything "cmake --install" ever installed from this build directory:
 #   sudo cmake -P <build dir>/uninstall.cmake
-# Every file listed in install_manifest.txt is deleted; then the directories that held them are
-# removed if they are left empty and belong to Beveled (their name contains "beveled"), so shared
-# system directories are never touched.
+# Every file listed in install_manifest.txt (last install) or installed_files.txt (earlier
+# installs, see record-install.cmake) is deleted; then the directories that held them are removed
+# if they are left empty and belong to Beveled (their name contains "beveled"), so shared system
+# directories are never touched.
 
 set(manifest "@CMAKE_BINARY_DIR@/install_manifest.txt")
-if(NOT EXISTS "${manifest}")
-    message(FATAL_ERROR "Nothing to uninstall: ${manifest} not found (was Beveled installed from this build directory?)")
-endif()
+set(history "@CMAKE_BINARY_DIR@/installed_files.txt")
 
-file(STRINGS "${manifest}" files)
+set(files "")
+foreach(list IN ITEMS "${manifest}" "${history}")
+    if(EXISTS "${list}")
+        file(STRINGS "${list}" entries)
+        list(APPEND files ${entries})
+    endif()
+endforeach()
+if(NOT files)
+    message(FATAL_ERROR "Nothing to uninstall: no install was recorded in @CMAKE_BINARY_DIR@")
+endif()
+list(REMOVE_DUPLICATES files)
+
 set(directories "")
 foreach(file IN LISTS files)
     set(path "$ENV{DESTDIR}${file}")
@@ -49,3 +59,6 @@ foreach(dir IN LISTS directories)
         file(REMOVE_RECURSE "${dir}")
     endif()
 endforeach()
+
+# Everything recorded is gone: start the next install with a clean record.
+file(REMOVE "${manifest}" "${history}")

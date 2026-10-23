@@ -23,14 +23,14 @@
       }
     },
     {
-      "name": "vm",
-      "displayName": "Test VM (RelWithDebInfo, installs into /usr)",
+      "name": "release",
+      "displayName": "Release (installs into /usr)",
       "generator": "Ninja",
-      "binaryDir": "${sourceDir}/build-vm",
+      "binaryDir": "${sourceDir}/build-release",
       "cacheVariables": {
-        "CMAKE_BUILD_TYPE": "RelWithDebInfo",
+        "CMAKE_BUILD_TYPE": "Release",
         "CMAKE_INSTALL_PREFIX": "/usr",
-        "BUILD_TESTING": "ON"
+        "BUILD_TESTING": "OFF"
       }
     }
   ],
@@ -44,8 +44,8 @@
       "configurePreset": "asan"
     },
     {
-      "name": "vm",
-      "configurePreset": "vm"
+      "name": "release",
+      "configurePreset": "release"
     }
   ],
   "testPresets": [
@@ -62,13 +62,22 @@
       "output": {
         "outputOnFailure": true
       }
-    },
+    }
+  ],
+  "workflowPresets": [
     {
-      "name": "vm",
-      "configurePreset": "vm",
-      "output": {
-        "outputOnFailure": true
-      }
+      "name": "release",
+      "displayName": "Configure and build for installing",
+      "steps": [
+        {
+          "type": "configure",
+          "name": "release"
+        },
+        {
+          "type": "build",
+          "name": "release"
+        }
+      ]
     }
   ]
 }
