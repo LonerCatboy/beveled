@@ -8,6 +8,10 @@ SPDX-License-Identifier: CC0-1.0
 A complete desktop theme for KDE Plasma 6 in the style of the classic late-'90s desktops:
 raised 3D buttons, gradient title bars, a gray window face and a docked taskbar at the bottom.
 
+![Beveled, the light global theme](lookandfeel/beveled.desktop/contents/previews/fullscreenpreview.jpg)
+
+![Beveled Dark, the dark global theme](lookandfeel/beveled-dark.desktop/contents/previews/fullscreenpreview.jpg)
+
 > **Status:** early development. The window decoration, color schemes and Plasma styles work;
 > the application style is a first version.
 
@@ -34,7 +38,96 @@ Icons and cursors are not part of the theme yet: Breeze is used for now.
 Beveled is designed and tested by LonerCatboy and written with the help of
 [Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant.
 
-## Building
+## Installing
+
+Beveled is not packaged yet: it is built from source and installed system-wide, where Plasma
+and System Settings find it. It needs Plasma 6.3 or later (Qt 6.8, KDE Frameworks 6.10).
+
+### 1. Build dependencies
+
+Fedora:
+
+```bash
+sudo dnf install git cmake ninja-build gcc-c++ extra-cmake-modules python3 qt6-qtbase-devel \
+  kf6-kconfig-devel kf6-kcoreaddons-devel kf6-kcolorscheme-devel kf6-kconfigwidgets-devel \
+  kf6-kcmutils-devel kdecoration-devel
+```
+
+Other distributions: install CMake, Ninja, a C++20 compiler, Python 3, Extra CMake Modules and
+the development packages of Qt 6 (Core, Gui, Widgets), KDE Frameworks 6 (KConfig, KCoreAddons,
+KColorScheme, KConfigWidgets, KCMUtils) and KDecoration 3.
+
+### 2. Build and install
+
+```bash
+git clone https://github.com/LonerCatboy/beveled.git
+cd beveled
+cmake -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_TESTING=OFF
+cmake --build build-release
+sudo cmake --install build-release
+```
+
+Keep the `beveled` folder: the list of installed files lives in `build-release` and is what
+makes a clean uninstall possible.
+
+Then **log out and back in**, so that KWin and Plasma load the new components.
+
+### 3. Choose the theme
+
+The quickest way: System Settings → Colors & Themes → Global Theme → **Beveled** or
+**Beveled Dark**. This sets the colors, window decoration, application and Plasma styles and the
+splash screen. Tick "Use desktop layout from theme" there for the classic taskbar (this replaces
+your current panels).
+
+Each part can also be chosen on its own in System Settings:
+
+| Part | Where | Choose |
+|---|---|---|
+| Colors | Colors & Themes → Colors | Beveled Classic, Modern, Parchment or Dark |
+| Window decoration | Colors & Themes → Window Decorations | Beveled |
+| Application style | Colors & Themes → Application Style | Beveled |
+| Plasma style | Colors & Themes → Plasma Style | Beveled (light colors) or Beveled Dark (dark colors) |
+
+The window decoration and the application style have their own options behind the edit or
+Configure button next to them. They are stored in `~/.config/beveledrc`.
+
+## Updating
+
+Uninstall the old version first, so that files removed or renamed in the new one do not stay
+behind, then build and install again:
+
+```bash
+cd beveled
+sudo cmake -P build-release/uninstall.cmake
+git pull
+cmake --build build-release
+sudo cmake --install build-release
+```
+
+Log out and back in afterwards.
+
+## Uninstalling
+
+1. In System Settings, switch to another global theme (for example Breeze), so that nothing
+   points to Beveled any more.
+2. Remove the installed files:
+
+   ```bash
+   cd beveled
+   sudo cmake -P build-release/uninstall.cmake
+   ```
+
+   This removes exactly the files listed in `build-release/install_manifest.txt` and the
+   Beveled folders that held them.
+3. Optionally remove your Beveled options: `rm ~/.config/beveledrc`
+4. Log out and back in.
+
+If Beveled was still selected, Plasma simply falls back to its defaults.
+
+If the session ever becomes unusable after installing, switch to a text console
+(Ctrl+Alt+F3), log in and run the command of step 2, then reboot.
+
+## Development
 
 ```bash
 cmake --preset dev
@@ -42,72 +135,8 @@ cmake --build --preset dev
 ctest --preset dev
 ```
 
-## Installing on a test machine
-
-Beveled is not packaged yet. On a disposable test machine (e.g. a Fedora KDE VM) it can be
-installed into `/usr`, where System Settings finds it.
-
-Build dependencies (Fedora):
-
-```bash
-sudo dnf install git cmake ninja-build gcc-c++ extra-cmake-modules qt6-qtbase-devel \
-  kf6-kconfig-devel kf6-kcoreaddons-devel kf6-kcolorscheme-devel kf6-kconfigwidgets-devel \
-  kf6-kcmutils-devel kdecoration-devel qt6-qtdeclarative-devel python3
-```
-
-Build, test and install:
-
-```bash
-cmake --preset vm
-cmake --build --preset vm
-ctest --preset vm
-sudo cmake --install build-vm
-```
-
-The quickest way to try everything: System Settings → Colors & Themes → Global Theme →
-**Beveled** or **Beveled Dark**. It sets the color scheme, window decoration, application and Plasma styles and the
-splash screen; tick "Use desktop layout from theme" there for a classic 34px taskbar (this
-replaces your current panels).
-
-Each part can also be chosen on its own: **Beveled** in Window Decorations, and **Beveled
-Classic**, **Beveled Modern**, **Beveled Parchment** or **Beveled Dark** in Colors.
-
-For the panel and popups, choose **Beveled** (light color schemes) or **Beveled Dark** (dark
-color schemes) in Plasma Style. The panel height is a panel setting, not part of the style: right
-click the panel, Enter Edit Mode, and adjust its height (the classic taskbar is about 28 px).
-
-For applications, choose **Beveled** in Application Style. It builds on Qt's own Windows style
-and changes button padding, layout margins and spacing, sunken frames and the 3D shades. Its
-options are behind the Configure button next to it and apply to applications started afterwards.
-
-The decoration options (title bar, bevels, shade depth, button hover and padding, shadows,
-opacity with blur, glossy title bar)
-are behind the edit button of Beveled in Window Decorations, and are stored in
-`~/.config/beveledrc`.
-
-To update, there is no need to uninstall first: the new install overwrites the old files.
-
-```bash
-git pull
-cmake --build --preset vm
-sudo cmake --install build-vm
-```
-
-Then log out and back in: KWin keeps the previously loaded plugin in memory.
-
-Uninstall:
-
-```bash
-sudo xargs -a build-vm/install_manifest.txt rm -v
-```
-
-If the decoration crashes KWin and the session becomes unusable, switch to a text console
-(Ctrl+Alt+F3), log in, run the uninstall command above and reboot: KWin falls back to the
-default decoration.
-
-## Trying the style on a single application
-
-On a test machine, without installing anything or changing global settings:
+The `dev` preset builds with tests in `build/`. To try the application style on a single
+application without installing anything:
 
 ```bash
 QT_PLUGIN_PATH=$PWD/build/bin kwrite -style beveled
@@ -118,10 +147,18 @@ QT_PLUGIN_PATH=$PWD/build/bin kwrite -style beveled
 The project follows the [REUSE](https://reuse.software/) specification:
 
 - code: GPL-2.0-or-later
-- artwork, including the Plasma style SVGs generated by `plasma/generate.py`: CC-BY-SA-4.0
+- artwork, including the Plasma style SVGs generated by `plasma/generate.py` and the previews:
+  CC-BY-SA-4.0
 - configuration files and documentation: CC0-1.0
 
 Full license texts are in `LICENSES/`.
+
+The wallpapers in the previews are photos from Wikimedia Commons, licensed CC BY-SA 4.0:
+
+- light theme: [National Nature Park Synevyr, Ukraine](https://commons.wikimedia.org/wiki/File:21-224-5054_NNP_Synevyr_RB_18.jpg)
+  by Roman Brechko
+- dark theme: [Autumn in Skäralid, Söderåsen National Park, Sweden](https://commons.wikimedia.org/wiki/File:Sk%C3%A4ralid_in_S%C3%B6der%C3%A5sen_National_Park_121020_01.jpg)
+  by Mats Brynolf
 
 ## Disclaimer
 
