@@ -40,8 +40,8 @@ Beveled is designed and tested by LonerCatboy and written with the help of
 
 ## Installing
 
-Beveled is not packaged yet: it is built from source and installed system-wide, where Plasma
-and System Settings find it. It needs Plasma 6.3 or later (Qt 6.8, KDE Frameworks 6.10).
+Beveled is not packaged yet, and it probably won't: it is built from source and installed system-wide, where Plasma
+and System Settings find it. It needs Plasma 6.3 or later (Qt 6.8, KDE Frameworks 6.10). The only reason it exists is because I wanted a nice and clean beveled theme for my machine, since everyone else I tried was deeply unsatisfactory.
 
 ### 1. Build dependencies
 
