@@ -82,7 +82,7 @@ Sunken frames and some other minor tweaks are set from the application style set
 - **Plasma styles:** panel, task buttons, popups and tooltips, light and dark.
 - **Color schemes:** Classic, Modern, Parchment and Dark.
 
-Icons and cursors are not part of the theme yet. I don't plan featuring them in the future, though you can mix and match them with available icon packs and cursors.
+Icons and cursors are not part of the theme yet. I don't plan featuring them in the future, though you can mix and match the theme with available icon packs and cursors pretty well.
 
 ## Made with Claude Code
 
