@@ -6,3 +6,20 @@ path = ["CMakePresets.json", "REUSE.toml", "decoration/beveled.json", "decoratio
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2026 LonerCatboy"
 SPDX-License-Identifier = "CC0-1.0"
+
+# Global theme previews: screenshots of Beveled over Wikimedia Commons photos (CC BY-SA 4.0).
+# Light: "21-224-5054 NNP Synevyr RB 18.jpg" by Roman Brechko (Rbrechko),
+#   https://commons.wikimedia.org/wiki/File:21-224-5054_NNP_Synevyr_RB_18.jpg
+# Dark: "Skäralid in Söderåsen National Park 121020 01.jpg" by Mats Brynolf (Auquamitzi),
+#   https://commons.wikimedia.org/wiki/File:Sk%C3%A4ralid_in_S%C3%B6der%C3%A5sen_National_Park_121020_01.jpg
+[[annotations]]
+path = "lookandfeel/beveled.desktop/contents/previews/**"
+precedence = "override"
+SPDX-FileCopyrightText = ["2026 LonerCatboy", "2017 Roman Brechko"]
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
+[[annotations]]
+path = "lookandfeel/beveled-dark.desktop/contents/previews/**"
+precedence = "override"
+SPDX-FileCopyrightText = ["2026 LonerCatboy", "2012 Mats Brynolf"]
+SPDX-License-Identifier = "CC-BY-SA-4.0"
