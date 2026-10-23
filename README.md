@@ -21,14 +21,15 @@ Most retro themes are made of svg, pictures, which get stretched to fit the scre
 and blurry, especially on high-resolution displays. Beveled draws every edge itself, one screen
 pixel at a time, so lines stay sharp at any size.
 
-### Other features
+### Other features (some examples):
 
-- **Button hover:** optionally, caption buttons are drawn slightly pressed while the pointer is
+**Button hover:** optionally, caption buttons are drawn slightly pressed while the pointer is
   over them.
 
   <img src="docs/images/hover-nudge.gif" width="173" alt="Caption buttons drawn slightly pressed on hover">
 
-- **Window frame:** soft (classic) or hard bevel.
+
+**Window frame:** soft (classic) or hard bevel.
 
   <img src="docs/images/frame-soft-hard.gif" width="300" alt="Window frame, soft and hard bevel">
 
@@ -36,7 +37,8 @@ pixel at a time, so lines stay sharp at any size.
   | --- | --- |
   | <img src="docs/images/frame-soft.png" width="300" alt="Soft window frame"> | <img src="docs/images/frame-hard.png" width="300" alt="Hard window frame"> |
 
-- **Button bevel:** soft (classic) or hard, set separately from the window frame.
+
+**Button bevel:** soft (classic) or hard, set separately from the window frame.
 
   <img src="docs/images/buttons-soft-hard.gif" width="250" alt="Caption buttons, soft and hard bevel">
 
@@ -44,7 +46,8 @@ pixel at a time, so lines stay sharp at any size.
   | --- | --- |
   | <img src="docs/images/buttons-soft.png" width="250" alt="Soft caption buttons"> | <img src="docs/images/buttons-hard.png" width="250" alt="Hard caption buttons"> |
 
-- **Sunken frames** (application style): soft (classic) or hard, with a 2px light edge at the
+
+**Sunken frames** (application style): soft (classic) or hard, with a 2px light edge at the
   bottom and right.
 
   <img src="docs/images/sunken-scroll-soft-hard.gif" width="153" alt="Sunken view frame, soft and hard"> <img src="docs/images/sunken-field-soft-hard.gif" width="361" alt="Sunken location field, soft and hard">
@@ -54,17 +57,22 @@ pixel at a time, so lines stay sharp at any size.
   | <img src="docs/images/sunken-scroll-soft.png" width="153" alt="Soft sunken view frame"> | <img src="docs/images/sunken-scroll-hard.png" width="153" alt="Hard sunken view frame"> |
   | <img src="docs/images/sunken-field-soft.png" width="361" alt="Soft sunken location field"> | <img src="docs/images/sunken-field-hard.png" width="361" alt="Hard sunken location field"> |
 
-- **Title bar:** gradient or solid, optional glossy finish, optional accent color, optional tint
+
+**Title bar:** gradient or solid, optional glossy finish, optional accent color, optional tint
   of inactive title bars with the active title color, adjustable title text weight.
-- **Shadows and transparency:** no shadow, soft shadow or solid drop shadow with adjustable
+
+**Shadows and transparency:** no shadow, soft shadow or solid drop shadow with adjustable
   distance; adjustable title bar and frame opacity (KWin blurs what is behind).
-- **Sizes:** bevel shade depth, space around buttons and space around symbols, each within a
+  
+**Sizes:** bevel shade depth, space around buttons and space around symbols, each within a
   fixed range. The application style has similar options for button padding and layout spacing.
 
 All window decoration options, in System Settings → Colors & Themes → Window Decorations →
 Beveled:
 
 <img src="docs/images/decoration-settings.png" width="574" alt="Beveled window decoration settings">
+
+Sunken frames and some other minor tweaks are set from the application style settings.
 
 ## What's included
 
