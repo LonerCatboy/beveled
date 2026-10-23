@@ -135,6 +135,13 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
             return;
         }
     }
+    // The whole menu gets the menu face before its items and frame are drawn. The Windows style
+    // only paints those, leaving the gaps between them to the window background: transparent on
+    // translucent menus (Plasma's desktop menu), where the wallpaper then shows through.
+    if (element == PE_PanelMenu) {
+        fillRect(painter, option->rect, option->palette.color(QPalette::Button));
+        return;
+    }
     // A flat button panel with no state is a hover highlight (the location bar's path buttons):
     // the Windows style fills it with the button face, which hides the field around it.
     if (element == PE_PanelButtonCommand) {

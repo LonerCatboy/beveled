@@ -12,6 +12,7 @@
 #include <QApplication>
 #include <QFrame>
 #include <QLibrary>
+#include <QMenu>
 #include <QPainter>
 #include <QPushButton>
 #include <QSignalSpy>
@@ -152,6 +153,26 @@ private Q_SLOTS:
         QCOMPARE(image.pixel(2, 10), palette.color(QPalette::Light).rgb()); // hover edge inside it
         QCOMPARE(image.pixel(27, 10), palette.color(QPalette::Dark).rgb());
         QCOMPARE(image.pixel(15, 10), palette.color(QPalette::Base).rgb()); // field still shows
+    }
+
+    // Translucent menus (Plasma's desktop menu) are opaque all the way to their frame.
+    void translucentMenu()
+    {
+        std::unique_ptr<QStyle> style(QStyleFactory::create(QStringLiteral("Beveled")));
+        QMenu menu;
+        menu.setStyle(style.get());
+        menu.setAttribute(Qt::WA_TranslucentBackground);
+        menu.addAction(QStringLiteral("One"));
+        menu.addAction(QStringLiteral("Two"));
+        menu.resize(menu.sizeHint());
+        const QImage image = menu.grab().toImage();
+        menu.setStyle(nullptr);
+        for (int x = 0; x < image.width(); ++x) {
+            QCOMPARE(qAlpha(image.pixel(x, image.height() / 2)), 255);
+        }
+        for (int y = 0; y < image.height(); ++y) {
+            QCOMPARE(qAlpha(image.pixel(image.width() / 2, y)), 255);
+        }
     }
 
     // The settings module loads and its sliders take their range from the schema.
