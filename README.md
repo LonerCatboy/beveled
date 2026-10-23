@@ -17,7 +17,7 @@ raised 3D buttons, gradient title bars, a gray window face and a docked taskbar 
 
 ## Why another retro theme
 
-Most retro themes are made of pictures that get stretched to fit the screen, so edges turn soft
+Most retro themes are made of svg, pictures, which get stretched to fit the screen, so edges turn soft
 and blurry, especially on high-resolution displays. Beveled draws every edge itself, one screen
 pixel at a time, so lines stay sharp at any size.
 
@@ -31,12 +31,12 @@ pixel at a time, so lines stay sharp at any size.
 - **Plasma styles:** panel, task buttons, popups and tooltips, light and dark.
 - **Color schemes:** Classic, Modern, Parchment and Dark.
 
-Icons and cursors are not part of the theme yet: Breeze is used for now.
+Icons and cursors are not part of the theme yet. I don't plan featuring them in the future, though you can mix and match them with available icon packs and cursors.
 
 ## Made with Claude Code
 
 Beveled is designed and tested by LonerCatboy and written with the help of
-[Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant.
+[Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant. It is by all intents and purposes a vibe coded project. It works on my machines, use it at your own risk.
 
 ## Installing
 
@@ -55,7 +55,7 @@ sudo dnf install git cmake ninja-build gcc-c++ extra-cmake-modules python3 qt6-q
 
 Other distributions: install CMake (3.25 or later), Ninja, a C++20 compiler, Python 3, Extra CMake Modules and
 the development packages of Qt 6 (Core, Gui, Widgets), KDE Frameworks 6 (KConfig, KCoreAddons,
-KColorScheme, KConfigWidgets, KCMUtils) and KDecoration 3.
+KColorScheme, KConfigWidgets, KCMUtils) and KDecoration 3. Ask your claude instance.
 
 ### 2. Build and install
 
