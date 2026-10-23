@@ -53,7 +53,7 @@ sudo dnf install git cmake ninja-build gcc-c++ extra-cmake-modules python3 qt6-q
   kf6-kcmutils-devel kdecoration-devel
 ```
 
-Other distributions: install CMake, Ninja, a C++20 compiler, Python 3, Extra CMake Modules and
+Other distributions: install CMake (3.25 or later), Ninja, a C++20 compiler, Python 3, Extra CMake Modules and
 the development packages of Qt 6 (Core, Gui, Widgets), KDE Frameworks 6 (KConfig, KCoreAddons,
 KColorScheme, KConfigWidgets, KCMUtils) and KDecoration 3.
 
@@ -62,12 +62,12 @@ KColorScheme, KConfigWidgets, KCMUtils) and KDecoration 3.
 ```bash
 git clone https://github.com/LonerCatboy/beveled.git
 cd beveled
-cmake -B build-release -G Ninja -DCMAKE_BUILD_TYPE=Release -DCMAKE_INSTALL_PREFIX=/usr -DBUILD_TESTING=OFF
-cmake --build build-release
+cmake --workflow --preset release
 sudo cmake --install build-release
 ```
 
-Keep the `beveled` folder: the list of installed files lives in `build-release` and is what
+The first command configures and builds in `build-release/`, the second copies the result into
+`/usr`. Keep the `beveled` folder: `build-release` records every installed file, which is what
 makes a clean uninstall possible.
 
 Then **log out and back in**, so that KWin and Plasma load the new components.
@@ -75,8 +75,9 @@ Then **log out and back in**, so that KWin and Plasma load the new components.
 ### 3. Choose the theme
 
 The quickest way: System Settings → Colors & Themes → Global Theme → **Beveled** or
-**Beveled Dark**. This sets the colors, window decoration, application and Plasma styles and the
-splash screen. Tick "Use desktop layout from theme" there for the classic taskbar (this replaces
+**Beveled Dark**. This sets the colors, window decoration, application and Plasma styles, the
+splash screen and the wallpaper (Synevyr for Beveled, Skäralid for Beveled Dark; both are also
+listed among the wallpapers). Tick "Use desktop layout from theme" there for the classic taskbar (this replaces
 your current panels).
 
 Each part can also be chosen on its own in System Settings:
@@ -93,14 +94,10 @@ Configure button next to them. They are stored in `~/.config/beveledrc`.
 
 ## Updating
 
-Uninstall the old version first, so that files removed or renamed in the new one do not stay
-behind, then build and install again:
-
 ```bash
 cd beveled
-sudo cmake -P build-release/uninstall.cmake
 git pull
-cmake --build build-release
+cmake --workflow --preset release
 sudo cmake --install build-release
 ```
 
@@ -117,8 +114,8 @@ Log out and back in afterwards.
    sudo cmake -P build-release/uninstall.cmake
    ```
 
-   This removes exactly the files listed in `build-release/install_manifest.txt` and the
-   Beveled folders that held them.
+   This removes every file installed from `build-release`, including files of older versions
+   that later updates no longer install, and the Beveled folders that held them.
 3. Optionally remove your Beveled options: `rm ~/.config/beveledrc`
 4. Log out and back in.
 
@@ -153,7 +150,8 @@ The project follows the [REUSE](https://reuse.software/) specification:
 
 Full license texts are in `LICENSES/`.
 
-The wallpapers in the previews are photos from Wikimedia Commons, licensed CC BY-SA 4.0:
+The wallpapers, included with the global themes and shown in the previews, are photos from
+Wikimedia Commons, licensed CC BY-SA 4.0:
 
 - light theme: [National Nature Park Synevyr, Ukraine](https://commons.wikimedia.org/wiki/File:21-224-5054_NNP_Synevyr_RB_18.jpg)
   by Roman Brechko
