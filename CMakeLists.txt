@@ -33,4 +33,7 @@ add_subdirectory(plasma)
 add_subdirectory(lookandfeel)
 add_subdirectory(tools/palette-dump)
 
+# "sudo cmake -P <build dir>/uninstall.cmake" removes what "cmake --install" put in place.
+configure_file(cmake/uninstall.cmake.in ${CMAKE_BINARY_DIR}/uninstall.cmake @ONLY)
+
 feature_summary(WHAT ALL INCLUDE_QUIET_PACKAGES FATAL_ON_MISSING_REQUIRED_PACKAGES)
