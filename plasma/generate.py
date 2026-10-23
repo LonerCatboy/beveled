@@ -96,23 +96,30 @@ class Frame:
     hint_prefix: str | None = None  # prefix of the margin hints, when it differs from prefix
 
 
-def ring_frame(prefix, rings, margins, center=FACE, inset_x=0, inset_y=0, open_side=None):
+def ring_frame(prefix, rings, margins, center=FACE, inset_x=0, inset_y=0, open_side=None, insets=None):
     """Concentric one-pixel rings, outer first, around a 1px center.
 
     Each ring is (top/left color, bottom/right color) and, as in libbeveled, the bottom/right
     color owns the corners. An optional transparent inset surrounds the rings and is added to the
-    content margins. open_side drops the border on one side (tabs open towards their page): the
-    two adjacent sides then run straight to that edge.
+    content margins: inset_x/inset_y on both sides, or insets per side. With uneven insets the
+    nine-patch borders take the larger one, and the bevel on the other side is followed by center
+    pixels. open_side drops the border on one side (tabs open towards their page): the two
+    adjacent sides then run straight to that edge.
     """
+    if insets is None:
+        insets = {"left": inset_x, "right": inset_x, "top": inset_y, "bottom": inset_y}
     depth = len(rings)
-    width, height = 2 * (inset_x + depth) + 1, 2 * (inset_y + depth) + 1
+    border_x = max(insets["left"], insets["right"]) + depth
+    border_y = max(insets["top"], insets["bottom"]) + depth
+    width, height = 2 * border_x + 1, 2 * border_y + 1
+    x0, x1 = insets["left"], width - 1 - insets["right"]
+    y0, y1 = insets["top"], height - 1 - insets["bottom"]
     grid = [[CLEAR] * width for _ in range(height)]
-    for y in range(inset_y, height - inset_y):
-        for x in range(inset_x, width - inset_x):
+    for y in range(y0, y1 + 1):
+        for x in range(x0, x1 + 1):
             grid[y][x] = center
     for ring, (top_left, bottom_right) in enumerate(rings):
-        left, top = inset_x + ring, inset_y + ring
-        right, bottom = width - 1 - left, height - 1 - top
+        left, top, right, bottom = x0 + ring, y0 + ring, x1 - ring, y1 - ring
         for x in range(left, right + 1):
             grid[top][x] = top_left
         for y in range(top, bottom + 1):
@@ -123,32 +130,31 @@ def ring_frame(prefix, rings, margins, center=FACE, inset_x=0, inset_y=0, open_s
             grid[y][right] = bottom_right
 
     if open_side in ("top", "bottom"):
-        rows = range(inset_y, inset_y + depth) if open_side == "top" else range(height - inset_y - depth, height - inset_y)
+        rows = range(y0, y0 + depth) if open_side == "top" else range(y1 + 1 - depth, y1 + 1)
         for y in rows:
-            for x in range(inset_x, width - inset_x):
+            for x in range(x0, x1 + 1):
                 grid[y][x] = center
             for ring, (top_left, bottom_right) in enumerate(rings):
-                grid[y][inset_x + ring] = top_left
-                grid[y][width - 1 - inset_x - ring] = bottom_right
+                grid[y][x0 + ring] = top_left
+                grid[y][x1 - ring] = bottom_right
     elif open_side in ("left", "right"):
-        cols = range(inset_x, inset_x + depth) if open_side == "left" else range(width - inset_x - depth, width - inset_x)
+        cols = range(x0, x0 + depth) if open_side == "left" else range(x1 + 1 - depth, x1 + 1)
         for x in cols:
-            for y in range(inset_y, height - inset_y):
+            for y in range(y0, y1 + 1):
                 grid[y][x] = center
             for ring, (top_left, bottom_right) in enumerate(rings):
-                grid[inset_y + ring][x] = top_left
-                grid[height - 1 - inset_y - ring][x] = bottom_right
+                grid[y0 + ring][x] = top_left
+                grid[y1 - ring][x] = bottom_right
 
-    insets = {"left": inset_x, "right": inset_x, "top": inset_y, "bottom": inset_y}
     if margins is not None:
         margins = {side: insets[side] + margins[side] for side in SIDES}
-    return Frame(prefix, grid, inset_x + depth, inset_y + depth, margins)
+    return Frame(prefix, grid, border_x, border_y, margins)
 
 
-def bevel_frame(prefix, bevel, margins, center=FACE, inset_x=0, inset_y=0, open_side=None):
+def bevel_frame(prefix, bevel, margins, center=FACE, inset_x=0, inset_y=0, open_side=None, insets=None):
     """A classic two-ring bevel: bevel is (outer TL, outer BR, inner TL, inner BR)."""
     rings = [(bevel[0], bevel[1]), (bevel[2], bevel[3])]
-    return ring_frame(prefix, rings, margins, center, inset_x, inset_y, open_side)
+    return ring_frame(prefix, rings, margins, center, inset_x, inset_y, open_side, insets)
 
 
 def flat_frame(prefix, token, margins):
@@ -221,20 +227,21 @@ def tabbar_frames():
     # the active tab is a pushed button, like the pressed start button and the active task, with
     # the task inset to sit inside the panel bevel; inactive tabs are not drawn. The content
     # margins keep their usual totals, shifted by a pixel towards the bottom right.
-    def pushed(prefix, across_x):
-        inset_x, inset_y = (TASK_INSET_Y, TASK_INSET_X) if across_x else (TASK_INSET_X, TASK_INSET_Y)
-        total_x, total_y = (6, 10) if not across_x else (6, 6)
-        margins = {
-            "left": total_x + 1 - inset_x, "right": total_x - 1 - inset_x,
-            "top": total_y + 1 - inset_y, "bottom": total_y - 1 - inset_y,
-        }
-        return bevel_frame(prefix, PUSHED_HARD, margins, inset_x=inset_x, inset_y=inset_y)
+    # The inset is a pixel larger on the side away from the screen edge: a docked panel has no
+    # bevel along the screen edge, so this centers the button in the panel; in popup footers it
+    # keeps the tab clear of the etched line above it.
+    def pushed(prefix, insets):
+        across = prefix.startswith(("west", "east"))
+        totals = {"left": 7, "right": 5, "top": 7 if across else 11, "bottom": 5 if across else 9}
+        margins = {side: totals[side] - insets[side] for side in SIDES}
+        return bevel_frame(prefix, PUSHED_HARD, margins, insets=insets)
 
+    edge, inner, side = TASK_INSET_Y + 1, TASK_INSET_Y + 2, TASK_INSET_X
     return [
-        pushed("north-active-tab", False),
-        pushed("south-active-tab", False),
-        pushed("west-active-tab", True),
-        pushed("east-active-tab", True),
+        pushed("north-active-tab", {"top": edge, "bottom": inner, "left": side, "right": side}),
+        pushed("south-active-tab", {"top": inner, "bottom": edge, "left": side, "right": side}),
+        pushed("west-active-tab", {"left": edge, "right": inner, "top": side, "bottom": side}),
+        pushed("east-active-tab", {"left": inner, "right": edge, "top": side, "bottom": side}),
     ]
 
 
