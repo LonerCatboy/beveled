@@ -49,7 +49,7 @@ private Q_SLOTS:
     }
 
     // The layout script runs against a stand-in for Plasma's scripting API and builds a docked
-    // 32px bottom panel with the classic set of widgets.
+    // 34px bottom panel with the classic set of widgets.
     void layoutScript()
     {
         QFile file(packageFile("contents/layouts/org.kde.plasma.desktop-layout.js"));
@@ -69,7 +69,7 @@ private Q_SLOTS:
 
         const QJSValue panel = engine.globalObject().property(QStringLiteral("panels")).property(0);
         QCOMPARE(panel.property(QStringLiteral("location")).toString(), QStringLiteral("bottom"));
-        QCOMPARE(panel.property(QStringLiteral("height")).toInt(), 32);
+        QCOMPARE(panel.property(QStringLiteral("height")).toInt(), 34);
         QCOMPARE(panel.property(QStringLiteral("floating")).toBool(), false);
         const QStringList widgets = panel.property(QStringLiteral("widgets")).toVariant().toStringList();
         QCOMPARE(widgets.first(), QStringLiteral("org.kde.plasma.kickoff"));
