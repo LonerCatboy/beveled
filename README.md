@@ -12,8 +12,6 @@ raised 3D buttons, gradient title bars, a gray window face and a docked taskbar 
 
 ![Beveled Dark, the dark global theme](lookandfeel/beveled-dark.desktop/contents/previews/fullscreenpreview.jpg)
 
-> **Status:** early development. The window decoration, color schemes and Plasma styles work;
-> the application style is a first version.
 
 ## Why another retro theme
 
