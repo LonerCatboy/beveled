@@ -1,0 +1,14 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Mats Brynolf"
+            }
+        ],
+        "Description": "Autumn in Skäralid, Söderåsen National Park, Sweden. Photo from Wikimedia Commons.",
+        "Id": "beveled-skaralid",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Skäralid",
+        "Website": "https://commons.wikimedia.org/wiki/File:Sk%C3%A4ralid_in_S%C3%B6der%C3%A5sen_National_Park_121020_01.jpg"
+    }
+}

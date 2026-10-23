@@ -2,6 +2,7 @@
 # SPDX-License-Identifier: CC0-1.0
 #
 # Settings applied by the Beveled Dark global theme. Icons and cursors stay Breeze for now.
+# The wallpaper is a package from wallpapers/ in this repository.
 
 [kdeglobals][KDE]
 widgetStyle=Beveled
@@ -11,6 +12,9 @@ ColorScheme=BeveledDark
 
 [kdeglobals][Icons]
 Theme=breeze
+
+[Wallpaper]
+Image=beveled-skaralid
 
 [plasmarc][Theme]
 name=beveled-dark

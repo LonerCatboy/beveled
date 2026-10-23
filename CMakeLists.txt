@@ -31,6 +31,7 @@ add_subdirectory(style)
 add_subdirectory(colors)
 add_subdirectory(plasma)
 add_subdirectory(lookandfeel)
+add_subdirectory(wallpapers)
 add_subdirectory(tools/palette-dump)
 
 # "sudo cmake -P <build dir>/uninstall.cmake" removes what "cmake --install" put in place.

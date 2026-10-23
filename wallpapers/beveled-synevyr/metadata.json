@@ -1,0 +1,14 @@
+{
+    "KPlugin": {
+        "Authors": [
+            {
+                "Name": "Roman Brechko"
+            }
+        ],
+        "Description": "National Nature Park Synevyr, Ukraine. Photo from Wikimedia Commons.",
+        "Id": "beveled-synevyr",
+        "License": "CC-BY-SA-4.0",
+        "Name": "Synevyr",
+        "Website": "https://commons.wikimedia.org/wiki/File:21-224-5054_NNP_Synevyr_RB_18.jpg"
+    }
+}
