@@ -21,6 +21,41 @@ Most retro themes are made of svg, pictures, which get stretched to fit the scre
 and blurry, especially on high-resolution displays. Beveled draws every edge itself, one screen
 pixel at a time, so lines stay sharp at any size.
 
+### Other features
+
+- **Button hover:** optionally, caption buttons are drawn slightly pressed while the pointer is
+  over them.
+
+  <img src="docs/images/hover-nudge.gif" width="173" alt="Caption buttons drawn slightly pressed on hover">
+
+- **Window frame:** soft (classic) or hard bevel.
+
+  <img src="docs/images/frame-soft-hard.gif" width="300" alt="Window frame, soft and hard bevel">
+
+  | Soft | Hard |
+  | --- | --- |
+  | <img src="docs/images/frame-soft.png" width="300" alt="Soft window frame"> | <img src="docs/images/frame-hard.png" width="300" alt="Hard window frame"> |
+
+- **Button bevel:** soft (classic) or hard, set separately from the window frame.
+
+  <img src="docs/images/buttons-soft-hard.gif" width="250" alt="Caption buttons, soft and hard bevel">
+
+  | Soft | Hard |
+  | --- | --- |
+  | <img src="docs/images/buttons-soft.png" width="250" alt="Soft caption buttons"> | <img src="docs/images/buttons-hard.png" width="250" alt="Hard caption buttons"> |
+
+- **Title bar:** gradient or solid, optional glossy finish, optional accent color, optional tint
+  of inactive title bars with the active title color, adjustable title text weight.
+- **Shadows and transparency:** no shadow, soft shadow or solid drop shadow with adjustable
+  distance; adjustable title bar and frame opacity (KWin blurs what is behind).
+- **Sizes:** bevel shade depth, space around buttons and space around symbols, each within a
+  fixed range. The application style has similar options for button padding and layout spacing.
+
+All window decoration options, in System Settings → Colors & Themes → Window Decorations →
+Beveled:
+
+<img src="docs/images/decoration-settings.png" width="574" alt="Beveled window decoration settings">
+
 ## What's included
 
 - **Global themes:** Beveled (light) and Beveled Dark, which apply everything below in one click,

@@ -25,6 +25,13 @@ precedence = "override"
 SPDX-FileCopyrightText = ["2026 LonerCatboy", "2012 Mats Brynolf"]
 SPDX-License-Identifier = "CC-BY-SA-4.0"
 
+# README screenshots and recordings (wallpaper replaced with a flat color).
+[[annotations]]
+path = "docs/images/**"
+precedence = "override"
+SPDX-FileCopyrightText = "2026 LonerCatboy"
+SPDX-License-Identifier = "CC-BY-SA-4.0"
+
 [[annotations]]
 path = "wallpapers/beveled-synevyr/**"
 precedence = "override"
