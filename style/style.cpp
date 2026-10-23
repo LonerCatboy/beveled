@@ -122,9 +122,25 @@ void Style::drawPrimitive(PrimitiveElement element, const QStyleOption *option, 
     if (element == PE_Frame || element == PE_FrameLineEdit) {
         const auto *frame = qstyleoption_cast<const QStyleOptionFrame *>(option);
         const bool hasFrame = frame && (element == PE_Frame || frame->lineWidth > 0);
-        if (hasFrame && (frame->state & State_Sunken)) {
+        // A text field drawn directly, without PE_PanelLineEdit and State_Sunken (Dolphin's
+        // location bar): still sunken, and the style draws its background too, as callers like
+        // that expect (QLineEdit fills its field itself).
+        const bool bareField = hasFrame && element == PE_FrameLineEdit && !(frame->state & State_Sunken);
+        if (bareField) {
+            fillRect(painter, frame->rect, frame->palette.color(QPalette::Base));
+        }
+        if (hasFrame && ((frame->state & State_Sunken) || bareField)) {
             const bool hard = m_config->sunkenFrame() == StyleConfig::EnumSunkenFrame::Hard;
             drawBevel(painter, frame->rect, hard ? BevelStyle::SunkenHard : BevelStyle::Sunken, frame->palette);
+            return;
+        }
+    }
+    // A flat button panel with no state is a hover highlight (the location bar's path buttons):
+    // the Windows style fills it with the button face, which hides the field around it.
+    if (element == PE_PanelButtonCommand) {
+        const auto *button = qstyleoption_cast<const QStyleOptionButton *>(option);
+        if (button && (button->features & QStyleOptionButton::Flat) && !(button->state & (State_Sunken | State_On | State_Raised))) {
+            drawHotTrack(painter, button->rect, button->palette);
             return;
         }
     }
@@ -139,6 +155,23 @@ void Style::drawControl(ControlElement element, const QStyleOption *option, QPai
         }
     }
     QProxyStyle::drawControl(element, option, painter, widget);
+}
+
+// Classic hot tracking of flat buttons: a thin raised edge (Light, then Dark at the bottom/right
+// owning the corners) and no fill. It stays inside a sunken field's bevel, since these buttons
+// often span the whole height of the field they sit in.
+void Style::drawHotTrack(QPainter *painter, const QRect &rect, const QPalette &pal) const
+{
+    PixelPainter pp(painter);
+    const int u = pp.unit();
+    const QRect d = pp.toDevice(rect.adjusted(bevelThickness(), bevelThickness(), -bevelThickness(), -bevelThickness()));
+    if (d.width() < 2 * u || d.height() < 2 * u) {
+        return;
+    }
+    pp.fillRect(QRect(d.left(), d.top(), d.width() - u, u), pal.color(QPalette::Light));
+    pp.fillRect(QRect(d.left(), d.top(), u, d.height() - u), pal.color(QPalette::Light));
+    pp.fillRect(QRect(d.left(), d.bottom() - u + 1, d.width(), u), pal.color(QPalette::Dark));
+    pp.fillRect(QRect(d.right() - u + 1, d.top(), u, d.height()), pal.color(QPalette::Dark));
 }
 
 // Same geometry as the Windows style's tabs (unselected tabs sit 2px lower and leave the edge

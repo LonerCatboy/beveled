@@ -12,12 +12,14 @@
 #include <QApplication>
 #include <QFrame>
 #include <QLibrary>
+#include <QPainter>
 #include <QPushButton>
 #include <QSignalSpy>
 #include <QSlider>
 #include <QStandardPaths>
 #include <QStyle>
 #include <QStyleFactory>
+#include <QStyleOption>
 #include <QTabBar>
 #include <QTest>
 
@@ -115,6 +117,41 @@ private Q_SLOTS:
         QCOMPARE(hardImage.pixel(last, mid), palette.color(QPalette::Light).rgb());
         QCOMPARE(hardImage.pixel(last - 1, mid), palette.color(QPalette::Light).rgb());
         QCOMPARE(hardImage.pixel(1, mid), palette.color(QPalette::Shadow).rgb());
+    }
+
+    // Dolphin's location bar draws its field with a bare PE_FrameLineEdit and hovers its path
+    // buttons with a flat PE_PanelButtonCommand: a sunken, filled field, and a thin raised edge
+    // inside it that leaves the field visible.
+    void locationBar()
+    {
+        std::unique_ptr<QStyle> style(QStyleFactory::create(QStringLiteral("Beveled")));
+        QPalette palette;
+        palette.setColor(QPalette::Base, QColor(1, 1, 1));
+        palette.setColor(QPalette::Window, QColor(2, 2, 2));
+        palette.setColor(QPalette::Light, QColor(3, 3, 3));
+        palette.setColor(QPalette::Dark, QColor(4, 4, 4));
+        QImage image(30, 20, QImage::Format_RGB32);
+        image.fill(palette.color(QPalette::Window));
+        QPainter painter(&image);
+
+        QStyleOptionFrame field;
+        field.rect = image.rect();
+        field.palette = palette;
+        field.lineWidth = 2;
+        field.state = QStyle::State_Enabled | QStyle::State_MouseOver;
+        style->drawPrimitive(QStyle::PE_FrameLineEdit, &field, &painter);
+        QStyleOptionButton hover;
+        hover.rect = image.rect();
+        hover.palette = palette;
+        hover.features = QStyleOptionButton::Flat;
+        hover.state = QStyle::State_Enabled | QStyle::State_MouseOver;
+        style->drawPrimitive(QStyle::PE_PanelButtonCommand, &hover, &painter);
+        painter.end();
+
+        QCOMPARE(image.pixel(0, 10), palette.color(QPalette::Dark).rgb()); // sunken field edge
+        QCOMPARE(image.pixel(2, 10), palette.color(QPalette::Light).rgb()); // hover edge inside it
+        QCOMPARE(image.pixel(27, 10), palette.color(QPalette::Dark).rgb());
+        QCOMPARE(image.pixel(15, 10), palette.color(QPalette::Base).rgb()); // field still shows
     }
 
     // The settings module loads and its sliders take their range from the schema.

@@ -46,6 +46,7 @@ public Q_SLOTS:
 private:
     // Square tab shapes for tabs on top or bottom; returns false for other shapes.
     bool drawSquareTab(const QStyleOptionTab *tab, QPainter *painter, const QWidget *widget) const;
+    void drawHotTrack(QPainter *painter, const QRect &rect, const QPalette &palette) const;
 
     std::unique_ptr<StyleConfig> m_config;
     KConfigWatcher::Ptr m_watcher;
