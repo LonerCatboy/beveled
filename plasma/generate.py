@@ -216,14 +216,25 @@ def button_frames():
 
 
 def tabbar_frames():
-    # The active tab is raised and open towards its page; inactive tabs are not drawn.
-    margins = {"left": 6, "right": 6, "top": 10, "bottom": 10}
-    sideways = {"left": 8, "right": 4, "top": 6, "bottom": 6}
+    # The panel draws an expanded applet (the launcher with its menu open) with the same
+    # "<edge>-active-tab" frames as popup tab bars, stretched over the whole panel thickness. So
+    # the active tab is a pushed button, like the pressed start button and the active task, with
+    # the task inset to sit inside the panel bevel; inactive tabs are not drawn. The content
+    # margins keep their usual totals, shifted by a pixel towards the bottom right.
+    def pushed(prefix, across_x):
+        inset_x, inset_y = (TASK_INSET_Y, TASK_INSET_X) if across_x else (TASK_INSET_X, TASK_INSET_Y)
+        total_x, total_y = (6, 10) if not across_x else (6, 6)
+        margins = {
+            "left": total_x + 1 - inset_x, "right": total_x - 1 - inset_x,
+            "top": total_y + 1 - inset_y, "bottom": total_y - 1 - inset_y,
+        }
+        return bevel_frame(prefix, PUSHED_HARD, margins, inset_x=inset_x, inset_y=inset_y)
+
     return [
-        bevel_frame("north-active-tab", RAISED, margins, open_side="bottom"),
-        bevel_frame("south-active-tab", RAISED, margins, open_side="top"),
-        bevel_frame("west-active-tab", RAISED, {**sideways, "left": 4, "right": 8}, open_side="right"),
-        bevel_frame("east-active-tab", RAISED, sideways, open_side="left"),
+        pushed("north-active-tab", False),
+        pushed("south-active-tab", False),
+        pushed("west-active-tab", True),
+        pushed("east-active-tab", True),
     ]
 
 
