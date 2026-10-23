@@ -5,30 +5,34 @@ SPDX-License-Identifier: CC0-1.0
 
 # Beveled
 
-A classic 3D-bevel theme (late-'90s style) for KDE Plasma 6, drawn in code and crisp at every
-scale.
+A complete desktop theme for KDE Plasma 6 in the style of the classic late-'90s desktops:
+raised 3D buttons, gradient title bars, a gray window face and a docked taskbar at the bottom.
 
 > **Status:** early development. The window decoration, color schemes and Plasma styles work;
 > the application style is a first version.
 
-## Goal
+## Why another retro theme
 
-Existing retro themes are built on scaled SVGs (Kvantum, Aurorae) and show blurry lines and
-antialiasing artifacts, especially at fractional scales. Beveled draws bevels, frames and glyphs
-in code, in physical pixels: integer line widths, coordinates aligned to the device pixel grid,
-no antialiasing on geometric primitives.
+Most retro themes are made of pictures that get stretched to fit the screen, so edges turn soft
+and blurry, especially on high-resolution displays. Beveled draws every edge itself, one screen
+pixel at a time, so lines stay sharp at any size.
 
-## Components
+## What's included
 
-| Component | Directory | Status |
-|---|---|---|
-| Drawing primitives library | `libbeveled/` | in progress |
-| Application style (QStyle, also QML/Kirigami) | `style/` | in progress: Qt's Windows style with compact buttons and classic 3D shades |
-| Window decoration (KDecoration3) | `decoration/` | in progress |
-| Color schemes (Classic, Modern, Parchment, Dark) | `colors/` | in progress |
-| Plasma style (panel, task buttons, popups, tooltips) | `plasma/` | in progress |
-| Global theme with splash screen and classic panel layout | `lookandfeel/` | in progress |
-| Cursors, icons | — | later (Breeze for now) |
+- **Global themes:** Beveled (light) and Beveled Dark, which apply everything below in one click,
+  with a splash screen and an optional classic taskbar layout.
+- **Window decoration:** beveled frame, gradient title bar and classic caption buttons, with
+  options for colors, bevels, hover effects, shadows and transparency.
+- **Application style:** classic look and compact spacing for KDE and Qt applications.
+- **Plasma styles:** panel, task buttons, popups and tooltips, light and dark.
+- **Color schemes:** Classic, Modern, Parchment and Dark.
+
+Icons and cursors are not part of the theme yet: Breeze is used for now.
+
+## Made with Claude Code
+
+Beveled is designed and tested by LonerCatboy and written with the help of
+[Claude Code](https://claude.com/claude-code), Anthropic's AI coding assistant.
 
 ## Building
 
