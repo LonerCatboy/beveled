@@ -44,6 +44,16 @@ pixel at a time, so lines stay sharp at any size.
   | --- | --- |
   | <img src="docs/images/buttons-soft.png" width="250" alt="Soft caption buttons"> | <img src="docs/images/buttons-hard.png" width="250" alt="Hard caption buttons"> |
 
+- **Sunken frames** (application style): soft (classic) or hard, with a 2px light edge at the
+  bottom and right.
+
+  <img src="docs/images/sunken-scroll-soft-hard.gif" width="153" alt="Sunken view frame, soft and hard"> <img src="docs/images/sunken-field-soft-hard.gif" width="361" alt="Sunken location field, soft and hard">
+
+  | Soft | Hard |
+  | --- | --- |
+  | <img src="docs/images/sunken-scroll-soft.png" width="153" alt="Soft sunken view frame"> | <img src="docs/images/sunken-scroll-hard.png" width="153" alt="Hard sunken view frame"> |
+  | <img src="docs/images/sunken-field-soft.png" width="361" alt="Soft sunken location field"> | <img src="docs/images/sunken-field-hard.png" width="361" alt="Hard sunken location field"> |
+
 - **Title bar:** gradient or solid, optional glossy finish, optional accent color, optional tint
   of inactive title bars with the active title color, adjustable title text weight.
 - **Shadows and transparency:** no shadow, soft shadow or solid drop shadow with adjustable
